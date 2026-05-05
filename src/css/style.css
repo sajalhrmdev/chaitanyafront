@@ -28879,3 +28879,12 @@ table.dataTable thead .sorting_desc:after {
       color: #fff; }
 
 /*# sourceMappingURL=style.css.map */
+/* Custom Menu Toggle Override */
+[data-sidebar-style="overlay"].menu-toggle .deznav {
+  left: 0 !important; 
+}
+
+[direction="rtl"][data-sidebar-style="overlay"].menu-toggle .deznav {
+  left: auto !important;
+  right: 0 !important; 
+}

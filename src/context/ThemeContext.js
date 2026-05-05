@@ -72,9 +72,7 @@ const ThemeContextProvider = (props) => {
   };
 
   const openMenuToggle = () => {
-    sideBarStyle.value === "overly"
-      ? setMenuToggle(true)
-      : setMenuToggle(false);
+    setMenuToggle(!menuToggle);
   };
 
   const changeBackground = (name) => {
@@ -91,7 +89,14 @@ const ThemeContextProvider = (props) => {
   
   
   useEffect(() => {
-	  const body = document.querySelector("body");    
+    if (menuToggle) {
+      body.classList.add("menu-toggle");
+    } else {
+      body.classList.remove("menu-toggle");
+    }
+  }, [menuToggle, body]);
+  
+  useEffect(() => {
 		let resizeWindow = () => {
 			setWindowWidth(window.innerWidth);
 			setWindowHeight(window.innerHeight);
