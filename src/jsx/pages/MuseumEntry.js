@@ -544,7 +544,8 @@ const role = localStorage.getItem('userRole');
     num_of_persons: '1',
     total_amt: '50',
     payment: '0',
-    gallery: '1', // always 1
+    // gallery: '1', // always 1
+    checkbox_gallery: '1',
     movie_show: '0',
     discount: '0',
     txn_id: ''
@@ -713,7 +714,8 @@ swal("Success!", "Entry Created!", "success").then(() => {
         num_of_persons: '1',
         total_amt: '50',
         payment: '0',
-        gallery: '1',
+        // gallery: '1',
+        checkbox_gallery: '1',
         movie_show: '0',
         discount: '0',
         txn_id: ''
