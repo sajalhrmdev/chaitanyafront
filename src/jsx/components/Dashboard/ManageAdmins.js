@@ -87,7 +87,8 @@ const ManageAdmins = () => {
           email: formData.email,
           mobile_no: formData.mobile_no,
           admin_role_id: formData.admin_role_id,
-          is_active: formData.is_active
+          is_active: formData.is_active,
+          password: formData.password
         };
         await adminService.updateAdmin(editingAdmin.user_id, updateData);
         swal('Success', 'Admin updated successfully', 'success');
