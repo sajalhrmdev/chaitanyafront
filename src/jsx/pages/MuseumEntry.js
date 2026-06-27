@@ -686,39 +686,73 @@ Amount: ${entry.total_amt}
       return swal("Error!", "Movie tickets cannot exceed persons", "error");
     }
 
-    // if (formData.payment === '1' && !formData.txn_id) {
-    //   setLoading(false);
-    //   return swal("Error!", "Transaction ID required!", "error");
-    // }
+    // 🔥 If Online payment → open Razorpay
+    if (formData.payment === '1') {
+      try {
+        const { data: order } = await axios.post(
+          'https://chaitanyaback.onrender.com/api/razorpay/create-order',
+          { amount: formData.total_amt }
+        );
 
+        const options = {
+          key: 'rzp_live_RkF1Uzk5QpuC1K',
+          amount: order.amount,
+          currency: 'INR',
+          name: 'Sri Chaitanya Mahaprabhu Museum',
+          description: 'Entry Ticket Payment',
+          order_id: order.id,
+          handler: async function (response) {
+            const updatedData = {
+              ...formData,
+              payment: '1',
+              txn_id: response.razorpay_payment_id
+            };
+
+            const res = await axios.post(
+              'https://chaitanyaback.onrender.com/api/museum',
+              updatedData
+            );
+
+            const entry = res.data;
+            swal("Success!", "Payment Successful & Entry Created!", "success").then(() => {
+              handlePrint(entry);
+            });
+
+            setFormData({
+              firstname: '', phone: '', address: '',
+              num_of_persons: '1', total_amt: '50', payment: '0',
+              gallery: '1', movie_show: '0', discount: '0', txn_id: ''
+            });
+          },
+          theme: { color: '#3399cc' }
+        };
+
+        const rzp = new window.Razorpay(options);
+        rzp.open();
+      } catch (err) {
+        swal("Error!", "Payment Failed", "error");
+      } finally {
+        setLoading(false);
+      }
+      return;
+    }
+
+    // 🔥 Cash payment → direct save
     try {
-     const res = await axios.post(
-        // 'https://sri-chaitanya-mahaprabhu-museum-entry.onrender.com/api/museum',
-        // 'http://localhost:3003/api/museum',
+      const res = await axios.post(
         'https://chaitanyaback.onrender.com/api/museum',
-
         formData
       );
 
-      // swal("Success!", "Entry Created!", "success");
-      const entry = res.data; // 🔥 backend response
-
-swal("Success!", "Entry Created!", "success").then(() => {
-  handlePrint(entry); // 🔥 auto print
-});
+      const entry = res.data;
+      swal("Success!", "Entry Created!", "success").then(() => {
+        handlePrint(entry);
+      });
 
       setFormData({
-        firstname: '',
-        phone: '',
-        address: '',
-        num_of_persons: '1',
-        total_amt: '50',
-        payment: '0',
-        gallery: '1',
-      
-        movie_show: '0',
-        discount: '0',
-        txn_id: ''
+        firstname: '', phone: '', address: '',
+        num_of_persons: '1', total_amt: '50', payment: '0',
+        gallery: '1', movie_show: '0', discount: '0', txn_id: ''
       });
 
     } catch (err) {
@@ -729,59 +763,6 @@ swal("Success!", "Entry Created!", "success").then(() => {
   };
 
 
-// const handleSubmit = async (e) => {
-//   e.preventDefault();
-
-//   if (Number(formData.movie_show) > Number(formData.num_of_persons)) {
-//     return swal("Error!", "Movie tickets cannot exceed persons", "error");
-//   }
-
-//   try {
-//     // 🔥 1. Create order
-//     const { data: order } = await axios.post(
-//       "http://localhost:3003/api/razorpay/create-order",
-//       { amount: formData.total_amt }
-//     );
-
-//     // 🔥 2. Open Razorpay
-//     const options = {
-//       key: "rzp_test_ShCsZlBHwUMcF0",
-//       amount: order.amount,
-//       currency: "INR",
-//       name: "Museum Entry",
-//       description: "Ticket Payment",
-//       order_id: order.id,
-
-//       handler: async function (response) {
-
-//         // 🔥 SAVE txn_id
-//         const updatedData = {
-//           ...formData,
-//           payment: "1",
-//           txn_id: response.razorpay_payment_id
-//         };
-
-//         // 🔥 3. Save entry
-//         await axios.post(
-//           "https://sri-chaitanya-mahaprabhu-museum-entry.onrender.com/api/museum",
-//           updatedData
-//         );
-
-//         swal("Success!", "Payment Successful & Entry Created!", "success");
-//       },
-
-//       theme: {
-//         color: "#3399cc"
-//       }
-//     };
-
-//     const rzp = new window.Razorpay(options);
-//     rzp.open();
-
-//   } catch (err) {
-//     swal("Error!", "Payment Failed", "error");
-//   }
-// };
 
   return (
     <div className="container py-4">

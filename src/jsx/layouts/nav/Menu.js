@@ -315,17 +315,30 @@ export const MenuList = [
                 title:'Entry Form',
                 to: 'museum-entry',
             },
-            // {
-            //     title:'Data Entry',
-            //     to: 'data-entry',
-            // },
             {
                 title:'View Entries',
                 to: 'museum-entries',
             },
         ]
     },
-    // Pages
+    //Camping
+    {
+        title:'Camping',
+        classsChange: 'mm-collapse',
+        iconStyle: <i className="flaticon-050-info"></i>,
+        content : [
+            {
+                title:'Camping Management',
+                to: 'camping-management',
+            },
+        ]
+    },
+    //Booking
+    {
+        title:'Booking',
+        iconStyle: <i className="flaticon-072-printer"></i>,
+        to: 'booking',
+    },
     // {
     //     title:'Pages',
     //     classsChange: 'mm-collapse',

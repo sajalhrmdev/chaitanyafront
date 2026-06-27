@@ -101,6 +101,8 @@ import SuperAdminLogin from "./pages/SuperAdminLogin";
 import AdminLogin from "./pages/AdminLogin";
 import DataEntry from "./pages/DataEntry";
 import MuseumEntry from "./pages/MuseumEntry";
+import CampingManagement from "./pages/CampingManagement";
+import Booking from "./pages/Booking";
 import { ThemeContext } from "../context/ThemeContext";
 
 //Scroll To Top
@@ -194,6 +196,8 @@ const Markup = () => {
     /// Museum
     { url: "data-entry", component: <DataEntry/> },
     { url: "museum-entry", component: <MuseumEntry/> },
+    { url: "camping-management", component: <CampingManagement/> },
+    { url: "booking", component: <Booking/> },
     
   ];
 
