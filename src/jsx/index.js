@@ -103,6 +103,7 @@ import DataEntry from "./pages/DataEntry";
 import MuseumEntry from "./pages/MuseumEntry";
 import CampingManagement from "./pages/CampingManagement";
 import Booking from "./pages/Booking";
+import BookingList from "./pages/BookingList";
 import { ThemeContext } from "../context/ThemeContext";
 
 //Scroll To Top
@@ -198,6 +199,7 @@ const Markup = () => {
     { url: "museum-entry", component: <MuseumEntry/> },
     { url: "camping-management", component: <CampingManagement/> },
     { url: "booking", component: <Booking/> },
+    { url: "booking-list", component: <BookingList/> },
     
   ];
 

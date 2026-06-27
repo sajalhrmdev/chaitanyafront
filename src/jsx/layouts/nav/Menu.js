@@ -336,8 +336,18 @@ export const MenuList = [
     //Booking
     {
         title:'Booking',
+        classsChange: 'mm-collapse',
         iconStyle: <i className="flaticon-072-printer"></i>,
-        to: 'booking',
+        content : [
+            {
+                title:'Booking Form',
+                to: 'booking',
+            },
+            {
+                title:'Booking List',
+                to: 'booking-list',
+            },
+        ]
     },
     // {
     //     title:'Pages',
