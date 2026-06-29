@@ -110,6 +110,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import loginbg from "../../images/pic1.png";
 import axios from 'axios';
+import { loadUserPermissions } from '../../utils/permissions';
 
 function AdminLogin() {
 
@@ -184,9 +185,12 @@ async function onLogin(e) {
 
     // 🔥 STORE USER INFO
     localStorage.setItem('isAuthenticated', 'true');
-    localStorage.setItem('userRole', user.admin_role_id);
+    localStorage.setItem('userRole', user.admin_role_id === 1 ? 'superadmin' : 'admin');
+    localStorage.setItem('adminRoleId', user.admin_role_id);
     localStorage.setItem('username', user.username);
     localStorage.setItem('userData', JSON.stringify(user));
+
+    await loadUserPermissions();
 
     // 🔥 REDIRECT BASED ON ROLE
     if (user.admin_role_id === 1) {

@@ -45,6 +45,10 @@ export const MenuList = [
             {
                 title: 'Manage Roles',
                 to: 'manage-roles',                
+            },
+            {
+                title: 'Access Control',
+                to: 'access-control',                
             },    
         ],
     },

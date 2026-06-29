@@ -107,6 +107,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import loginbg from "../../images/pic1.png";
+import { loadUserPermissions } from '../../utils/permissions';
 
 function SuperAdminLogin() {
 
@@ -159,9 +160,12 @@ function SuperAdminLogin() {
       // localStorage.setItem('userData', JSON.stringify(user));
 
       localStorage.setItem('isAuthenticated', 'true');
-    localStorage.setItem('userRole', user.admin_role_id);
+    localStorage.setItem('userRole', 'superadmin');
+    localStorage.setItem('adminRoleId', user.admin_role_id);
     localStorage.setItem('username', user.username);
     localStorage.setItem('userData', JSON.stringify(user));
+
+      await loadUserPermissions();
 
       // 🚀 REDIRECT
       navigate('/museum-entries');
