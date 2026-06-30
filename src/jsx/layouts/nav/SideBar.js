@@ -24,6 +24,15 @@ const initialState = {
 
 const superAdminOnlyMenus = ["manage-admins", "manage-roles", "access-control", "activity-dashboard"];
 
+// Map sidebar menu items to permission page_keys
+const menuToPageKey = {
+  'museum-entry': 'museum-entry',
+  'museum-entries': 'museum-entries',
+  'camping-management': 'camping-management',
+  'booking': 'booking',
+  'booking-list': 'booking-list',
+};
+
 const SideBar = () => {
   const {
     iconHover,
@@ -38,11 +47,24 @@ const SideBar = () => {
   const [heartBtn, setHeartBtn] = useState();
   const [state, setState] = useReducer(reducer, initialState);
   const visibleMenuList = useMemo(() => {
+    const stored = localStorage.getItem('permissions');
+    const perms = stored ? JSON.parse(stored) : null;
+
     return MenuList.map((menu) => {
       if (!menu.content) return menu;
-      const filteredContent = menu.content.filter((item) => (
-        isSuperAdmin || !superAdminOnlyMenus.includes(item.to)
-      ));
+      const filteredContent = menu.content.filter((item) => {
+        // Super admin only items
+        if (superAdminOnlyMenus.includes(item.to) && !isSuperAdmin) return false;
+        // Permission based visibility
+        if (!isSuperAdmin && perms && perms !== 'SUPER_ADMIN') {
+          const pageKey = menuToPageKey[item.to];
+          if (pageKey) {
+            const pagePerm = perms[pageKey];
+            if (!pagePerm || !pagePerm.can_view) return false;
+          }
+        }
+        return true;
+      });
       if (filteredContent.length === 0) return null;
       return { ...menu, content: filteredContent };
     }).filter(Boolean);
