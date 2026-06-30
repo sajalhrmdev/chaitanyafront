@@ -25,23 +25,17 @@ function App() {
       setIsAuthenticated(true);
       setUserRole(role);
     } else if (!isPublicRoute) {
-      // Redirect to appropriate login based on current path
       if (location.pathname === '/admin-login') {
-        // Stay on admin login
-      } else if (location.pathname === '/super-admin-login') {
-        // Stay on super admin login  
+        // Stay on login
       } else {
-        navigate('/super-admin-login');
+        navigate('/admin-login');
       }
     }
   }, [navigate, location.pathname, isPublicRoute]);
 
-  // Show login pages if not authenticated
+  // Show login page if not authenticated
   if (!isAuthenticated && !isPublicRoute) {
-    if (location.pathname === '/admin-login') {
-      return <AdminLogin />;
-    }
-    return <SuperAdminLogin />;
+    return <AdminLogin />;
   }
 
   return (

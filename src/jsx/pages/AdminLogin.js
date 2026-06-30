@@ -114,8 +114,8 @@ import { loadUserPermissions } from '../../utils/permissions';
 
 function AdminLogin() {
 
-  const [username, setUsername] = useState('admin');
-  const [password, setPassword] = useState('admin123');
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
 
   const [errors, setErrors] = useState({ username: '', password: '' });
 
@@ -192,12 +192,8 @@ async function onLogin(e) {
 
     await loadUserPermissions();
 
-    // 🔥 REDIRECT BASED ON ROLE
-    if (user.admin_role_id === 1) {
-      navigate('/super-admin-dashboard');
-    } else {
-      navigate('/museum-entries');
-    }
+    // 🔥 REDIRECT
+    navigate('/museum-entries');
 
   } catch (err) {
     setErrors({
@@ -239,7 +235,7 @@ async function onLogin(e) {
             <form onSubmit={onLogin}>
 
               <h3 className="text-center mb-4 fw-bold text-dark">
-                🔐 Admin Login
+                🔐 Login
               </h3>
 
               {/* USERNAME */}
@@ -285,12 +281,7 @@ async function onLogin(e) {
             </form>
 
             <div className="text-center mt-3">
-              <small>
-                Super Admin?{" "}
-                <Link className="text-primary fw-semibold" to="/super-admin-login">
-                  Login here
-                </Link>
-              </small>
+              <small className="text-muted">Sri Chaitanya Mahaprabhu Museum</small>
             </div>
 
           </div>
