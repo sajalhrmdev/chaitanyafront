@@ -49,6 +49,10 @@ export const MenuList = [
             {
                 title: 'Access Control',
                 to: 'access-control',                
+            },
+            {
+                title: 'Activity Monitor',
+                to: 'activity-dashboard',                
             },    
         ],
     },

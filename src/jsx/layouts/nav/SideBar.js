@@ -22,7 +22,7 @@ const initialState = {
   activeSubmenu : "",
 }
 
-const superAdminOnlyMenus = ["manage-admins", "manage-roles"];
+const superAdminOnlyMenus = ["manage-admins", "manage-roles", "access-control", "activity-dashboard"];
 
 const SideBar = () => {
   const {
@@ -34,15 +34,19 @@ const SideBar = () => {
   } = useContext(ThemeContext);
   const date = new Date();
   const role = localStorage.getItem("userRole");
-  const isSuperAdmin = role === 1 || role === "1";
+  const isSuperAdmin = role === 'superadmin' || role === '1' || role === 1;
   const [heartBtn, setHeartBtn] = useState();
   const [state, setState] = useReducer(reducer, initialState);
-  const visibleMenuList = useMemo(() => MenuList.map((menu) => ({
-    ...menu,
-    content: menu.content?.filter((item) => (
-      isSuperAdmin || !superAdminOnlyMenus.includes(item.to)
-    )),
-  })), [isSuperAdmin]);
+  const visibleMenuList = useMemo(() => {
+    return MenuList.map((menu) => {
+      if (!menu.content) return menu;
+      const filteredContent = menu.content.filter((item) => (
+        isSuperAdmin || !superAdminOnlyMenus.includes(item.to)
+      ));
+      if (filteredContent.length === 0) return null;
+      return { ...menu, content: filteredContent };
+    }).filter(Boolean);
+  }, [isSuperAdmin]);
   const handleMenuActive = status => {		
     setState({active : status});			
     if(state.active === status){				
