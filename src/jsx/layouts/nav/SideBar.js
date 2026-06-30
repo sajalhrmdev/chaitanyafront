@@ -46,6 +46,16 @@ const SideBar = () => {
   const isSuperAdmin = role === 'superadmin' || role === '1' || role === 1;
   const [heartBtn, setHeartBtn] = useState();
   const [state, setState] = useReducer(reducer, initialState);
+  const [permKey, setPermKey] = useState(0);
+
+  useEffect(() => {
+    // Re-check permissions on mount and storage change
+    const handleStorage = () => setPermKey(prev => prev + 1);
+    window.addEventListener('storage', handleStorage);
+    setPermKey(prev => prev + 1);
+    return () => window.removeEventListener('storage', handleStorage);
+  }, []);
+
   const visibleMenuList = useMemo(() => {
     const stored = localStorage.getItem('permissions');
     const perms = stored ? JSON.parse(stored) : null;
@@ -55,12 +65,13 @@ const SideBar = () => {
       const filteredContent = menu.content.filter((item) => {
         // Super admin only items
         if (superAdminOnlyMenus.includes(item.to) && !isSuperAdmin) return false;
-        // Permission based visibility
-        if (!isSuperAdmin && perms && perms !== 'SUPER_ADMIN') {
+        // Permission based visibility for non-super admins
+        if (!isSuperAdmin) {
+          if (!perms || perms === 'SUPER_ADMIN') return true;
           const pageKey = menuToPageKey[item.to];
           if (pageKey) {
             const pagePerm = perms[pageKey];
-            if (!pagePerm || !pagePerm.can_view) return false;
+            if (!pagePerm || pagePerm.can_view !== 1) return false;
           }
         }
         return true;
@@ -68,7 +79,7 @@ const SideBar = () => {
       if (filteredContent.length === 0) return null;
       return { ...menu, content: filteredContent };
     }).filter(Boolean);
-  }, [isSuperAdmin]);
+  }, [isSuperAdmin, permKey]);
   const handleMenuActive = status => {		
     setState({active : status});			
     if(state.active === status){				
