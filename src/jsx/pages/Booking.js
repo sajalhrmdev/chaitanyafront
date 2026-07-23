@@ -49,7 +49,7 @@ const Booking = () => {
         );
 
         const options = {
-          key: order.key_id || 'rzp_live_RkF1Uzk5QpuC1K',
+          key: 'rzp_live_RkF1Uzk5QpuC1K',
           amount: order.amount,
           currency: order.currency || 'INR',
           name: 'Booking Payment',
