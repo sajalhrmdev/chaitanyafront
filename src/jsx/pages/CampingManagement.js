@@ -80,12 +80,23 @@ const CampingManagement = () => {
     const newStatus = currentStatus === 'Active' ? 'Inactive' : 'Active';
     
     try {
-      await axios.patch(`${API}/${c.id}/status`, { status: newStatus });
+      await axios.put(`${API}/${c.id}`, {
+        camping_name: c.camping_name,
+        location: c.location || '',
+        start_date: c.start_date?.split('T')[0],
+        end_date: c.end_date?.split('T')[0],
+        organizer_name: c.organizer_name,
+        contact_details: c.contact_details,
+        participants_count: c.participants_count || 0,
+        remarks: c.remarks || '',
+        doctors: c.doctors || '',
+        status: newStatus
+      });
       swal("Status Updated!", `Camping "${c.camping_name}" is now ${newStatus}.`, "success");
       fetchCampings();
     } catch {
       try {
-        await axios.put(`${API}/${c.id}`, { ...c, status: newStatus });
+        await axios.patch(`${API}/${c.id}/status`, { status: newStatus });
         swal("Status Updated!", `Camping "${c.camping_name}" is now ${newStatus}.`, "success");
         fetchCampings();
       } catch {

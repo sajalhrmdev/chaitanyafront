@@ -259,7 +259,7 @@ const CampingEntry = () => {
             color: '#1E3A8A',
             margin: '2px 0 1px 0'
           }}>
-            Camp Public Registration
+            {selectedCamp ? `${selectedCamp.camping_name} Registration` : 'Camp Registration'}
           </h2>
           <p style={{ color: '#64748B', fontSize: '12px', margin: 0 }}>
             Register online for upcoming events hosted by Sri Chaitanya Mahaprabhu Museum.
