@@ -25,7 +25,7 @@ const CampingManagement = () => {
 
   const [campForm, setCampForm] = useState({
     camping_name: '', location: '', start_date: '', end_date: '',
-    organizer_name: '', contact_details: '', participants_count: '', remarks: ''
+    organizer_name: '', contact_details: '', participants_count: '', remarks: '', status: 'Active'
   });
 
   const [leadForm, setLeadForm] = useState({
@@ -34,6 +34,12 @@ const CampingManagement = () => {
 
   useEffect(() => { fetchCampings(); }, []);
   useEffect(() => { if (tab === 'leads') fetchLeads(); }, [tab, filterCamping]);
+
+  const isSuperAdmin = () => {
+    const role = (localStorage.getItem('userRole') || '').toLowerCase();
+    const perms = localStorage.getItem('permissions');
+    return role === 'superadmin' || perms === '"SUPER_ADMIN"';
+  };
 
   const fetchCampings = async () => {
     try {
@@ -58,11 +64,34 @@ const CampingManagement = () => {
         await axios.put(`${API}/${editId}`, campForm);
         swal("Success!", "Updated!", "success");
       } else {
-        await axios.post(API, campForm);
+        await axios.post(API, { ...campForm, status: campForm.status || 'Active' });
         swal("Success!", "Camping Created!", "success");
       }
       closeModal(); fetchCampings();
     } catch { swal("Error!", "Failed", "error"); }
+  };
+
+  const toggleCampingStatus = async (c) => {
+    if (!isSuperAdmin()) {
+      swal("Permission Denied", "Only Super Admin has permission to activate/inactivate camp events.", "warning");
+      return;
+    }
+    const currentStatus = c.status || 'Active';
+    const newStatus = currentStatus === 'Active' ? 'Inactive' : 'Active';
+    
+    try {
+      await axios.patch(`${API}/${c.id}/status`, { status: newStatus });
+      swal("Status Updated!", `Camping "${c.camping_name}" is now ${newStatus}.`, "success");
+      fetchCampings();
+    } catch {
+      try {
+        await axios.put(`${API}/${c.id}`, { ...c, status: newStatus });
+        swal("Status Updated!", `Camping "${c.camping_name}" is now ${newStatus}.`, "success");
+        fetchCampings();
+      } catch {
+        swal("Error!", "Failed to update status", "error");
+      }
+    }
   };
 
   const editCamping = (c) => {
@@ -70,7 +99,8 @@ const CampingManagement = () => {
       camping_name: c.camping_name, location: c.location,
       start_date: c.start_date?.split('T')[0], end_date: c.end_date?.split('T')[0],
       organizer_name: c.organizer_name, contact_details: c.contact_details,
-      participants_count: c.participants_count, remarks: c.remarks
+      participants_count: c.participants_count, remarks: c.remarks,
+      status: c.status || 'Active'
     });
     setEditId(c.id); setShowModal(true);
   };
@@ -111,9 +141,18 @@ const CampingManagement = () => {
 
   const closeModal = () => {
     setShowModal(false); setEditId(null);
-    setCampForm({ camping_name: '', location: '', start_date: '', end_date: '', organizer_name: '', contact_details: '', participants_count: '', remarks: '' });
+    setCampForm({ camping_name: '', location: '', start_date: '', end_date: '', organizer_name: '', contact_details: '', participants_count: '', remarks: '', status: 'Active' });
     setLeadForm({ camping_id: '', patient_name: '', phone: '', email: '', age: '', interest: '', source: '', date: '' });
   };
+
+  const copyPublicLink = () => {
+    const publicUrl = `${window.location.origin}/camping-entry`;
+    navigator.clipboard.writeText(publicUrl);
+    swal("Public Link Copied! 🔗", `Shareable Public Registration Link:\n${publicUrl}`, "success");
+  };
+
+  // Active campings for lead dropdown
+  const activeCampings = campings.filter(c => (c.status || 'Active') === 'Active');
 
   // FILTERS
   const filteredCampings = campings.filter(c =>
@@ -185,6 +224,9 @@ const CampingManagement = () => {
       <div className="d-flex justify-content-between align-items-center mb-3">
         <h4>🏕️ Camping Management</h4>
         <div className="d-flex gap-2">
+          <button className="btn btn-outline-info" onClick={copyPublicLink} title="Copy Public Registration Form Link">
+            🌐 Copy Public Form Link
+          </button>
           <input className="form-control" placeholder="Search..." value={search} onChange={e => setSearch(e.target.value)} style={{ width: 180 }} />
           <button className="btn btn-success" onClick={() => { closeModal(); setShowModal(true); }}>+ Add New</button>
         </div>
@@ -203,21 +245,56 @@ const CampingManagement = () => {
             <div className="table-responsive">
               <table className="table table-hover mb-0">
                 <thead className="bg-light">
-                  <tr><th>Action</th><th>#</th><th>Camping Name</th><th>Location</th><th>Start Date</th><th>End Date</th><th>Organizer</th><th>Contact</th><th>Participants</th></tr>
+                  <tr>
+                    <th>Action</th>
+                    <th>#</th>
+                    <th>Camping Name</th>
+                    <th>Location</th>
+                    <th>Start Date</th>
+                    <th>End Date</th>
+                    <th>Organizer</th>
+                    <th>Contact</th>
+                    <th>Participants</th>
+                    <th>Status</th>
+                  </tr>
                 </thead>
                 <tbody>
-                  {filteredCampings.map((c, i) => (
-                    <tr key={c.id}>
-                      <td>
-                        <button className="btn btn-sm btn-warning me-1" onClick={() => editCamping(c)}>✏️</button>
-                        <button className="btn btn-sm btn-danger" onClick={() => deleteCamping(c.id)}>🗑️</button>
-                      </td>
-                      <td>{i + 1}</td><td>{c.camping_name}</td><td>{c.location}</td>
-                      <td>{c.start_date?.split('T')[0]}</td><td>{c.end_date?.split('T')[0]}</td>
-                      <td>{c.organizer_name}</td><td>{c.contact_details}</td><td>{c.participants_count}</td>
-                    </tr>
-                  ))}
-                  {filteredCampings.length === 0 && <tr><td colSpan="9" className="text-center py-4">No records</td></tr>}
+                  {filteredCampings.map((c, i) => {
+                    const statusVal = c.status || 'Active';
+                    const isActive = statusVal === 'Active';
+                    return (
+                      <tr key={c.id}>
+                        <td>
+                          <button className="btn btn-sm btn-warning me-1" title="Edit" onClick={() => editCamping(c)}>✏️</button>
+                          <button className="btn btn-sm btn-danger me-1" title="Delete" onClick={() => deleteCamping(c.id)}>🗑️</button>
+                        </td>
+                        <td>{i + 1}</td>
+                        <td><strong>{c.camping_name}</strong></td>
+                        <td>{c.location}</td>
+                        <td>{c.start_date?.split('T')[0]}</td>
+                        <td>{c.end_date?.split('T')[0]}</td>
+                        <td>{c.organizer_name}</td>
+                        <td>{c.contact_details}</td>
+                        <td>{c.participants_count}</td>
+                        <td>
+                          <div className="d-flex align-items-center gap-2">
+                            <span className={`badge ${isActive ? 'bg-success' : 'bg-secondary'}`}>
+                              {isActive ? '● Active' : '○ Inactive'}
+                            </span>
+                            <button
+                              className={`btn btn-xs ${isActive ? 'btn-outline-danger' : 'btn-outline-success'}`}
+                              style={{ padding: '2px 8px', fontSize: '11px' }}
+                              onClick={() => toggleCampingStatus(c)}
+                              title={isSuperAdmin() ? "Click to toggle Active/Inactive" : "Super Admin only"}
+                            >
+                              {isActive ? 'Deactivate' : 'Activate'}
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                  {filteredCampings.length === 0 && <tr><td colSpan="10" className="text-center py-4">No records</td></tr>}
                 </tbody>
               </table>
             </div>
@@ -230,9 +307,9 @@ const CampingManagement = () => {
         <>
           {/* FILTERS */}
           <div className="mb-3 d-flex gap-2 flex-wrap">
-            <select className="form-control" style={{ width: 200 }} value={filterCamping} onChange={e => setFilterCamping(e.target.value)}>
+            <select className="form-control" style={{ width: 220 }} value={filterCamping} onChange={e => setFilterCamping(e.target.value)}>
               <option value="">🏕️ All Campings</option>
-              {campings.map(c => <option key={c.id} value={c.id}>{c.camping_name}</option>)}
+              {campings.map(c => <option key={c.id} value={c.id}>{c.camping_name} {(c.status || 'Active') === 'Inactive' ? '(Inactive)' : ''}</option>)}
             </select>
             <select className="form-control" style={{ width: 140 }} value={filterInterest} onChange={e => setFilterInterest(e.target.value)}>
               <option value="">All Interest</option>
@@ -325,6 +402,13 @@ const CampingManagement = () => {
                         <input type="number" className="form-control" value={campForm.participants_count} onChange={e => setCampForm({ ...campForm, participants_count: e.target.value })} />
                       </div>
                       <div className="col-md-6 mb-3">
+                        <label>Status</label>
+                        <select className="form-control" value={campForm.status || 'Active'} onChange={e => setCampForm({ ...campForm, status: e.target.value })}>
+                          <option value="Active">Active</option>
+                          <option value="Inactive">Inactive</option>
+                        </select>
+                      </div>
+                      <div className="col-md-12 mb-3">
                         <label>📝 Remarks</label>
                         <textarea className="form-control" value={campForm.remarks} onChange={e => setCampForm({ ...campForm, remarks: e.target.value })} />
                       </div>
@@ -335,10 +419,10 @@ const CampingManagement = () => {
                   <form onSubmit={handleLeadSubmit}>
                     <div className="row">
                       <div className="col-md-6 mb-3">
-                        <label>Select Camping *</label>
+                        <label>Select Camping * (Only Active Campings)</label>
                         <select className="form-control" value={leadForm.camping_id} onChange={e => setLeadForm({ ...leadForm, camping_id: e.target.value })} required>
-                          <option value="">-- Select --</option>
-                          {campings.map(c => <option key={c.id} value={c.id}>{c.camping_name}</option>)}
+                          <option value="">-- Select Active Camping --</option>
+                          {activeCampings.map(c => <option key={c.id} value={c.id}>{c.camping_name}</option>)}
                         </select>
                       </div>
                       <div className="col-md-6 mb-3">

@@ -14,7 +14,7 @@ function App() {
   const [userRole, setUserRole] = useState(null);
   const navigate = useNavigate();
   const location = useLocation();
-  const publicRoutes = ['/museum-entry', '/booking'];
+  const publicRoutes = ['/museum-entry', '/booking', '/camping-entry', '/camping-lead', '/add-lead'];
   const isPublicRoute = publicRoutes.includes(location.pathname);
 
   useEffect(() => {

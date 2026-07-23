@@ -102,6 +102,7 @@ import AdminLogin from "./pages/AdminLogin";
 import DataEntry from "./pages/DataEntry";
 import MuseumEntry from "./pages/MuseumEntry";
 import CampingManagement from "./pages/CampingManagement";
+import CampingEntry from "./pages/CampingEntry";
 import Booking from "./pages/Booking";
 import BookingList from "./pages/BookingList";
 import AccessControl from "./pages/AccessControl";
@@ -200,6 +201,9 @@ const Markup = () => {
     { url: "data-entry", component: <DataEntry/> },
     { url: "museum-entry", component: <MuseumEntry/> },
     { url: "camping-management", component: <CampingManagement/> },
+    { url: "camping-entry", component: <CampingEntry/> },
+    { url: "camping-lead", component: <CampingEntry/> },
+    { url: "add-lead", component: <CampingEntry/> },
     { url: "booking", component: <Booking/> },
     { url: "booking-list", component: <BookingList/> },
     { url: "access-control", component: <AccessControl/> },
