@@ -229,26 +229,24 @@ const CampingEntry = () => {
   return (
     <div style={{
       minHeight: '100vh',
-      maxHeight: '100vh',
       background: 'linear-gradient(180deg, #F8FAFC 0%, #EFF6FF 100%)',
       color: '#0F172A',
-      padding: '20px 15px',
-      overflow: 'hidden',
+      padding: '10px 15px',
       display: 'flex',
       flexDirection: 'column',
       justify: 'center',
       fontFamily: "'Outfit', 'Inter', system-ui, -apple-system, sans-serif"
     }}>
-      <div className="container" style={{ maxWidth: '1080px', margin: '0 auto' }}>
+      <div className="container" style={{ maxWidth: '1060px', margin: '0 auto' }}>
         
         {/* LIGHT ELEGANT HEADER */}
-        <div className="text-center mb-3">
-          <div className="d-inline-flex align-items-center justify-content-center mb-1 px-3 py-1" style={{
+        <div className="text-center mb-2">
+          <div className="d-inline-flex align-items-center justify-content-center mb-1 px-3 py-0.5" style={{
             background: '#EFF6FF',
             border: '1px solid #BFDBFE',
             borderRadius: '50px',
             color: '#1D4ED8',
-            fontSize: '12px',
+            fontSize: '11px',
             fontWeight: '700',
             letterSpacing: '0.5px'
           }}>
@@ -257,19 +255,19 @@ const CampingEntry = () => {
 
           <h2 style={{
             fontWeight: '900',
-            fontSize: '26px',
+            fontSize: '22px',
             color: '#1E3A8A',
-            margin: '4px 0 2px 0'
+            margin: '2px 0 1px 0'
           }}>
             Camp Public Registration
           </h2>
-          <p style={{ color: '#64748B', fontSize: '13px', margin: 0 }}>
-            Register online for upcoming camping events hosted by Sri Chaitanya Mahaprabhu Museum.
+          <p style={{ color: '#64748B', fontSize: '12px', margin: 0 }}>
+            Register online for upcoming events hosted by Sri Chaitanya Mahaprabhu Museum.
           </p>
         </div>
 
         {/* MAIN 2-COLUMN LIGHT CARD CONTAINER - FITS IN VIEWPORT WITHOUT SCROLLING */}
-        <div className="row g-3 align-items-stretch" style={{ background: '#FFFFFF', borderRadius: '20px', padding: '16px', boxShadow: '0 10px 30px rgba(0,0,0,0.06)', border: '1px solid #E2E8F0' }}>
+        <div className="row g-2 align-items-stretch" style={{ background: '#FFFFFF', borderRadius: '16px', padding: '12px', boxShadow: '0 8px 24px rgba(0,0,0,0.05)', border: '1px solid #E2E8F0' }}>
           
           {/* EVENT SUMMARY PANEL */}
           <div className="col-lg-5">
