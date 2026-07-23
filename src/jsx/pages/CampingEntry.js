@@ -5,9 +5,9 @@ import swal from 'sweetalert';
 const API = 'https://chaitanyaback.onrender.com/api/camping';
 
 const INTEREST_OPTIONS = [
-  { value: 'High', label: '🔥 High Interest', badgeClass: 'bg-danger' },
-  { value: 'Medium', label: '⚡ Medium Interest', badgeClass: 'bg-warning text-dark' },
-  { value: 'Low', label: '🌱 Basic Interest', badgeClass: 'bg-info' }
+  { value: 'High', label: '🔥 High Interest' },
+  { value: 'Medium', label: '⚡ Medium Interest' },
+  { value: 'Low', label: '🌱 Basic Interest' }
 ];
 
 const SOURCE_OPTIONS = ['Online Public Portal', 'Social Media', 'Walk-in', 'Referral', 'Phone', 'Camp Visit', 'Other'];
@@ -39,7 +39,6 @@ const CampingEntry = () => {
   const fetchActiveCampings = async () => {
     try {
       const { data } = await axios.get(`${API}?status=Active`);
-      // Double check active filter
       const filtered = data.filter(c => (c.status || 'Active') === 'Active');
       setActiveCampings(filtered);
       if (filtered.length > 0) {
@@ -67,7 +66,7 @@ const CampingEntry = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData.camping_id) {
-      return swal("Required", "Please select an active camp event", "warning");
+      return swal("Required", "Please select an active camp", "warning");
     }
     if (!formData.patient_name.trim()) {
       return swal("Required", "Please enter full name", "warning");
@@ -79,13 +78,11 @@ const CampingEntry = () => {
     setLoading(true);
     try {
       const { data } = await axios.post(`${API}/leads`, formData);
-      const passRef = `CMP-${data.id || Math.floor(1000 + Math.random() * 9000)}`;
       
       const leadRecord = {
         ...formData,
-        id: data.id || passRef,
-        passRef,
-        camping_name: selectedCamp ? selectedCamp.camping_name : 'Camp Event',
+        id: data.id || Math.floor(1000 + Math.random() * 9000),
+        camping_name: selectedCamp ? selectedCamp.camping_name : 'Camping Event',
         location: selectedCamp ? selectedCamp.location : '',
         organizer: selectedCamp ? selectedCamp.organizer_name : '',
         contact: selectedCamp ? selectedCamp.contact_details : ''
@@ -99,7 +96,7 @@ const CampingEntry = () => {
         text: `Thank you ${formData.patient_name}! Your camp registration pass has been generated.`,
         icon: "success",
         buttons: {
-          confirm: { text: "View Registration Pass 🎫", value: true }
+          confirm: { text: "View Pass 🎫", value: true }
         }
       });
 
@@ -123,75 +120,71 @@ const CampingEntry = () => {
   const handlePrintPass = () => {
     if (!submittedLead) return;
 
-    const qrData = `PassRef:${submittedLead.passRef}|Event:${submittedLead.camping_name}|Name:${submittedLead.patient_name}|Phone:${submittedLead.phone}|Date:${submittedLead.date}`;
+    const qrData = `Camp:${submittedLead.camping_name}|Name:${submittedLead.patient_name}|Phone:${submittedLead.phone}|Date:${submittedLead.date}`;
 
-    const printWindow = window.open('', '', 'width=600,height=800');
+    const printWindow = window.open('', '', 'width=600,height=750');
     printWindow.document.write(`
       <html>
         <head>
-          <title>Camp Registration Pass - ${submittedLead.passRef}</title>
+          <title>Camp Registration Pass - ${submittedLead.camping_name}</title>
           <style>
             body {
               font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-              width: 340px;
-              margin: 20px auto;
-              padding: 20px;
-              border: 2px dashed #4F46E5;
+              width: 320px;
+              margin: 15px auto;
+              padding: 16px;
+              border: 2px dashed #2563EB;
               border-radius: 12px;
               text-align: center;
-              color: #1F2937;
-              background-color: #FAFAFA;
+              color: #0F172A;
+              background-color: #FFFFFF;
             }
             .header {
-              border-bottom: 2px solid #E5E7EB;
-              padding-bottom: 12px;
-              margin-bottom: 12px;
+              border-bottom: 2px solid #E2E8F0;
+              padding-bottom: 10px;
+              margin-bottom: 10px;
             }
             .title {
-              font-size: 16px;
+              font-size: 15px;
               font-weight: 800;
-              color: #4F46E5;
+              color: #1E40AF;
               margin: 4px 0;
               text-transform: uppercase;
               letter-spacing: 0.5px;
             }
             .subtitle {
               font-size: 11px;
-              color: #6B7280;
+              color: #64748B;
               margin: 0;
             }
-            .badge {
-              display: inline-block;
-              background: #EEF2FF;
-              color: #4F46E5;
-              padding: 4px 12px;
-              border-radius: 20px;
-              font-weight: bold;
-              font-size: 12px;
-              margin: 10px 0;
+            .camp-title {
+              font-size: 18px;
+              font-weight: 800;
+              color: #2563EB;
+              margin: 12px 0 6px 0;
             }
             .details {
               text-align: left;
-              font-size: 13px;
+              font-size: 12.5px;
               line-height: 1.6;
-              margin: 12px 0;
-              background: #FFFFFF;
-              padding: 12px;
+              margin: 10px 0;
+              background: #F8FAFC;
+              padding: 10px 12px;
               border-radius: 8px;
-              box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+              border: 1px solid #E2E8F0;
             }
             .details p {
-              margin: 4px 0;
+              margin: 3px 0;
             }
             .qr-code {
-              margin: 15px 0 10px 0;
+              margin: 12px 0 8px 0;
             }
             .footer {
-              font-size: 11px;
-              color: #9CA3AF;
-              border-top: 1px dashed #D1D5DB;
-              padding-top: 10px;
-              margin-top: 12px;
+              font-size: 10.5px;
+              color: #64748B;
+              border-top: 1px dashed #CBD5E1;
+              padding-top: 8px;
+              margin-top: 10px;
             }
           </style>
         </head>
@@ -201,25 +194,25 @@ const CampingEntry = () => {
             <p class="subtitle">Official Camp Registration Pass</p>
           </div>
 
-          <div class="badge">REF #: ${submittedLead.passRef}</div>
+          <div class="camp-title">🏕️ ${submittedLead.camping_name}</div>
 
           <div class="details">
-            <p><b>🏕️ Event:</b> ${submittedLead.camping_name}</p>
-            <p><b>📍 Venue:</b> ${submittedLead.location || 'Museum Campus'}</p>
+            <p><b>🏕️ Camp Name:</b> ${submittedLead.camping_name}</p>
+            <p><b>📍 Location:</b> ${submittedLead.location || 'Museum Campus'}</p>
             <p><b>👤 Name:</b> ${submittedLead.patient_name}</p>
-            <p><b>📞 Contact:</b> ${submittedLead.phone}</p>
+            <p><b>📞 Phone:</b> ${submittedLead.phone}</p>
             ${submittedLead.email ? `<p><b>✉️ Email:</b> ${submittedLead.email}</p>` : ''}
             ${submittedLead.age ? `<p><b>🎂 Age:</b> ${submittedLead.age} yrs</p>` : ''}
             <p><b>📅 Preferred Date:</b> ${submittedLead.date}</p>
-            <p><b>⭐ Interest Level:</b> ${submittedLead.interest}</p>
+            <p><b>⭐ Interest:</b> ${submittedLead.interest}</p>
           </div>
 
           <div class="qr-code">
-            <img src="https://api.qrserver.com/v1/create-qr-code/?size=130x130&data=${encodeURIComponent(qrData)}" alt="QR Code" />
+            <img src="https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(qrData)}" alt="QR Code" />
           </div>
 
           <div class="footer">
-            <p>Please present this pass or digital screenshot at the camp entry desk.</p>
+            <p>Please present this pass at the camp entrance desk.</p>
             <p>🌐 chaitanyamuseum.org | 📞 8617528955</p>
           </div>
 
@@ -236,99 +229,98 @@ const CampingEntry = () => {
   return (
     <div style={{
       minHeight: '100vh',
-      background: 'linear-gradient(135deg, #0F172A 0%, #1E1B4B 50%, #311042 100%)',
-      color: '#F8FAFC',
-      padding: '40px 15px',
+      maxHeight: '100vh',
+      background: 'linear-gradient(180deg, #F8FAFC 0%, #EFF6FF 100%)',
+      color: '#0F172A',
+      padding: '20px 15px',
+      overflow: 'hidden',
+      display: 'flex',
+      flexDirection: 'column',
+      justify: 'center',
       fontFamily: "'Outfit', 'Inter', system-ui, -apple-system, sans-serif"
     }}>
-      <div className="container" style={{ maxWidth: '960px' }}>
+      <div className="container" style={{ maxWidth: '1080px', margin: '0 auto' }}>
         
-        {/* HERO BRANDING HEADER */}
-        <div className="text-center mb-5" style={{ animation: 'fadeIn 0.8s ease-in-out' }}>
-          <div className="d-inline-flex align-items-center justify-content-center mb-3" style={{
-            background: 'rgba(255, 255, 255, 0.1)',
-            backdropFilter: 'blur(12px)',
-            border: '1px solid rgba(255, 255, 255, 0.2)',
+        {/* LIGHT ELEGANT HEADER */}
+        <div className="text-center mb-3">
+          <div className="d-inline-flex align-items-center justify-content-center mb-1 px-3 py-1" style={{
+            background: '#EFF6FF',
+            border: '1px solid #BFDBFE',
             borderRadius: '50px',
-            padding: '8px 24px',
-            boxShadow: '0 8px 32px rgba(99, 102, 241, 0.25)'
+            color: '#1D4ED8',
+            fontSize: '12px',
+            fontWeight: '700',
+            letterSpacing: '0.5px'
           }}>
-            <span style={{ fontSize: '20px', marginRight: '8px' }}>✨</span>
-            <span style={{ fontWeight: '700', letterSpacing: '1px', textTransform: 'uppercase', fontSize: '13px', color: '#A5B4FC' }}>
-              Sri Chaitanya Mahaprabhu Museum
-            </span>
+            🏛️ SRI CHAITANYA MAHAPRABHU MUSEUM
           </div>
 
-          <h1 style={{
+          <h2 style={{
             fontWeight: '900',
-            fontSize: 'calc(1.8rem + 1.5vw)',
-            background: 'linear-gradient(90deg, #FFFFFF 0%, #C7D2FE 50%, #818CF8 100%)',
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
-            margin: '10px 0',
-            letterSpacing: '-0.5px'
+            fontSize: '26px',
+            color: '#1E3A8A',
+            margin: '4px 0 2px 0'
           }}>
-            Camp Event Public Registration
-          </h1>
-          <p style={{ color: '#94A3B8', fontSize: '16px', maxWidth: '640px', margin: '0 auto' }}>
-            Register online for upcoming medical, spiritual, and community camping events hosted by Sri Chaitanya Mahaprabhu Museum.
+            Camp Public Registration
+          </h2>
+          <p style={{ color: '#64748B', fontSize: '13px', margin: 0 }}>
+            Register online for upcoming camping events hosted by Sri Chaitanya Mahaprabhu Museum.
           </p>
         </div>
 
-        {/* MAIN CONTAINER GRID */}
-        <div className="row g-4 align-items-stretch">
+        {/* MAIN 2-COLUMN LIGHT CARD CONTAINER - FITS IN VIEWPORT WITHOUT SCROLLING */}
+        <div className="row g-3 align-items-stretch" style={{ background: '#FFFFFF', borderRadius: '20px', padding: '16px', boxShadow: '0 10px 30px rgba(0,0,0,0.06)', border: '1px solid #E2E8F0' }}>
           
-          {/* EVENT SUMMARY CARD */}
+          {/* EVENT SUMMARY PANEL */}
           <div className="col-lg-5">
             <div style={{
-              background: 'rgba(30, 41, 59, 0.7)',
-              backdropFilter: 'blur(16px)',
-              border: '1px solid rgba(255, 255, 255, 0.12)',
-              borderRadius: '24px',
-              padding: '28px',
+              background: '#F8FAFC',
+              border: '1px solid #E2E8F0',
+              borderRadius: '16px',
+              padding: '20px',
               height: '100%',
-              boxShadow: '0 20px 40px rgba(0, 0, 0, 0.3)',
               display: 'flex',
               flexDirection: 'column',
               justify: 'space-between'
             }}>
               <div>
-                <div className="d-flex align-items-center justify-content-between mb-4">
-                  <h5 style={{ margin: 0, fontWeight: '700', color: '#F1F5F9' }}>
-                    🏕️ Select Active Event
-                  </h5>
-                  <span className="badge bg-success bg-gradient px-3 py-2 rounded-pill" style={{ fontSize: '11px', letterSpacing: '0.5px' }}>
-                    ● LIVE EVENT
+                <div className="d-flex align-items-center justify-content-between mb-3">
+                  <h6 style={{ margin: 0, fontWeight: '800', color: '#1E293B' }}>
+                    🏕️ Active Camp Event
+                  </h6>
+                  <span className="badge bg-success px-2 py-1 rounded-pill" style={{ fontSize: '10px' }}>
+                    ● ACTIVE
                   </span>
                 </div>
 
                 {activeCampings.length === 0 ? (
-                  <div className="text-center py-5" style={{ color: '#94A3B8' }}>
-                    <div style={{ fontSize: '40px', marginBottom: '12px' }}>🏕️</div>
-                    <h6>No Active Camp Events</h6>
-                    <p style={{ fontSize: '13px' }}>Currently there are no active camping events open for public registration.</p>
+                  <div className="text-center py-4" style={{ color: '#64748B' }}>
+                    <div style={{ fontSize: '32px', marginBottom: '8px' }}>🏕️</div>
+                    <h6 style={{ fontSize: '14px' }}>No Active Camp Events</h6>
+                    <p style={{ fontSize: '12px', margin: 0 }}>Currently there are no active camping events open for registration.</p>
                   </div>
                 ) : (
                   <>
-                    <div className="mb-4">
-                      <label style={{ fontSize: '13px', fontWeight: '600', color: '#CBD5E1', marginBottom: '8px', display: 'block' }}>
-                        Choose Camping Event *
+                    <div className="mb-3">
+                      <label style={{ fontSize: '12px', fontWeight: '700', color: '#475569', marginBottom: '4px', display: 'block' }}>
+                        Select Camp *
                       </label>
                       <select
-                        className="form-select form-select-lg"
+                        className="form-select form-select-sm"
                         style={{
-                          background: 'rgba(15, 23, 42, 0.8)',
-                          border: '1px solid #475569',
-                          color: '#F8FAFC',
-                          borderRadius: '14px',
-                          fontSize: '15px',
-                          padding: '12px 16px'
+                          background: '#FFFFFF',
+                          border: '1px solid #CBD5E1',
+                          color: '#0F172A',
+                          borderRadius: '10px',
+                          fontSize: '13px',
+                          padding: '8px 12px',
+                          fontWeight: '600'
                         }}
                         value={formData.camping_id}
                         onChange={handleCampChange}
                       >
                         {activeCampings.map(c => (
-                          <option key={c.id} value={c.id} style={{ background: '#0F172A', color: '#FFF' }}>
+                          <option key={c.id} value={c.id}>
                             {c.camping_name}
                           </option>
                         ))}
@@ -337,38 +329,38 @@ const CampingEntry = () => {
 
                     {selectedCamp && (
                       <div style={{
-                        background: 'linear-gradient(145deg, rgba(79, 70, 229, 0.15), rgba(124, 58, 237, 0.15))',
-                        border: '1px solid rgba(165, 180, 252, 0.2)',
-                        borderRadius: '18px',
-                        padding: '20px',
-                        marginTop: '15px'
+                        background: '#EFF6FF',
+                        border: '1px solid #BFDBFE',
+                        borderRadius: '14px',
+                        padding: '14px',
+                        marginTop: '10px'
                       }}>
-                        <h5 style={{ fontWeight: '800', color: '#E0E7FF', marginBottom: '14px' }}>
+                        <h6 style={{ fontWeight: '800', color: '#1E40AF', marginBottom: '10px', fontSize: '15px' }}>
                           {selectedCamp.camping_name}
-                        </h5>
+                        </h6>
 
-                        <div className="mb-2 d-flex align-items-start gap-2" style={{ fontSize: '14px', color: '#CBD5E1' }}>
+                        <div className="mb-1.5 d-flex align-items-center gap-2" style={{ fontSize: '12.5px', color: '#334155' }}>
                           <span>📍</span>
                           <div>
-                            <strong>Location:</strong> {selectedCamp.location || 'Museum Auditorium'}
+                            <strong>Location:</strong> {selectedCamp.location || 'Museum Campus'}
                           </div>
                         </div>
 
-                        <div className="mb-2 d-flex align-items-start gap-2" style={{ fontSize: '14px', color: '#CBD5E1' }}>
+                        <div className="mb-1.5 d-flex align-items-center gap-2" style={{ fontSize: '12.5px', color: '#334155' }}>
                           <span>📅</span>
                           <div>
                             <strong>Dates:</strong> {selectedCamp.start_date?.split('T')[0]} to {selectedCamp.end_date?.split('T')[0]}
                           </div>
                         </div>
 
-                        <div className="mb-2 d-flex align-items-start gap-2" style={{ fontSize: '14px', color: '#CBD5E1' }}>
+                        <div className="mb-1.5 d-flex align-items-center gap-2" style={{ fontSize: '12.5px', color: '#334155' }}>
                           <span>👤</span>
                           <div>
                             <strong>Organizer:</strong> {selectedCamp.organizer_name}
                           </div>
                         </div>
 
-                        <div className="mb-2 d-flex align-items-start gap-2" style={{ fontSize: '14px', color: '#CBD5E1' }}>
+                        <div className="mb-1.5 d-flex align-items-center gap-2" style={{ fontSize: '12.5px', color: '#334155' }}>
                           <span>📞</span>
                           <div>
                             <strong>Contact:</strong> {selectedCamp.contact_details}
@@ -376,8 +368,8 @@ const CampingEntry = () => {
                         </div>
 
                         {selectedCamp.remarks && (
-                          <div className="mt-3 pt-3 border-top border-secondary" style={{ fontSize: '13px', color: '#94A3B8' }}>
-                            💬 <em>{selectedCamp.remarks}</em>
+                          <div className="mt-2 pt-2 border-top border-blue-200" style={{ fontSize: '11.5px', color: '#64748B' }}>
+                            💬 {selectedCamp.remarks}
                           </div>
                         )}
                       </div>
@@ -386,50 +378,42 @@ const CampingEntry = () => {
                 )}
               </div>
 
-              <div className="mt-4 pt-3 text-center border-top border-secondary border-opacity-25" style={{ fontSize: '12px', color: '#64748B' }}>
-                Protected & Secured by Sri Chaitanya Museum Portal
+              <div className="mt-3 pt-2 text-center border-top" style={{ fontSize: '11px', color: '#94A3B8' }}>
+                Verified Official Camp Portal | Sri Chaitanya Museum
               </div>
             </div>
           </div>
 
-          {/* PUBLIC FORM CARD */}
+          {/* COMPACT PUBLIC REGISTRATION FORM PANEL */}
           <div className="col-lg-7">
-            <div style={{
-              background: 'rgba(30, 41, 59, 0.7)',
-              backdropFilter: 'blur(16px)',
-              border: '1px solid rgba(255, 255, 255, 0.12)',
-              borderRadius: '24px',
-              padding: '32px',
-              boxShadow: '0 20px 40px rgba(0, 0, 0, 0.3)'
-            }}>
-              <h4 style={{ fontWeight: '800', color: '#F8FAFC', marginBottom: '8px' }}>
-                📝 Visitor & Participant Registration Form
-              </h4>
-              <p style={{ color: '#94A3B8', fontSize: '14px', marginBottom: '24px' }}>
-                Fill in your personal details to receive your instant digital entry pass.
-              </p>
+            <div style={{ padding: '8px 12px' }}>
+              <div className="d-flex align-items-center justify-content-between mb-2">
+                <h6 style={{ fontWeight: '800', color: '#0F172A', margin: 0, fontSize: '16px' }}>
+                  📋 Participant Registration Details
+                </h6>
+                <small style={{ color: '#64748B', fontSize: '11px' }}>Fill in details to get instant pass</small>
+              </div>
 
               <form onSubmit={handleSubmit}>
-                <div className="row g-3">
+                <div className="row g-2">
                   
-                  {/* PATIENT/PARTICIPANT NAME */}
+                  {/* FULL NAME */}
                   <div className="col-md-6">
-                    <label style={{ fontSize: '13px', fontWeight: '600', color: '#CBD5E1', marginBottom: '6px' }}>
+                    <label style={{ fontSize: '11.5px', fontWeight: '700', color: '#475569', marginBottom: '2px' }}>
                       Full Name *
                     </label>
                     <input
                       type="text"
-                      className="form-control"
+                      className="form-control form-control-sm"
                       name="patient_name"
                       placeholder="e.g. Rahul Sharma"
                       value={formData.patient_name}
                       onChange={handleChange}
                       style={{
-                        background: 'rgba(15, 23, 42, 0.8)',
-                        border: '1px solid #475569',
-                        color: '#F8FAFC',
-                        borderRadius: '12px',
-                        padding: '12px 14px'
+                        border: '1px solid #CBD5E1',
+                        borderRadius: '8px',
+                        padding: '6px 10px',
+                        fontSize: '12.5px'
                       }}
                       required
                     />
@@ -437,22 +421,21 @@ const CampingEntry = () => {
 
                   {/* PHONE NUMBER */}
                   <div className="col-md-6">
-                    <label style={{ fontSize: '13px', fontWeight: '600', color: '#CBD5E1', marginBottom: '6px' }}>
+                    <label style={{ fontSize: '11.5px', fontWeight: '700', color: '#475569', marginBottom: '2px' }}>
                       Phone Number *
                     </label>
                     <input
                       type="tel"
-                      className="form-control"
+                      className="form-control form-control-sm"
                       name="phone"
                       placeholder="10-digit mobile number"
                       value={formData.phone}
                       onChange={handleChange}
                       style={{
-                        background: 'rgba(15, 23, 42, 0.8)',
-                        border: '1px solid #475569',
-                        color: '#F8FAFC',
-                        borderRadius: '12px',
-                        padding: '12px 14px'
+                        border: '1px solid #CBD5E1',
+                        borderRadius: '8px',
+                        padding: '6px 10px',
+                        fontSize: '12.5px'
                       }}
                       required
                     />
@@ -460,34 +443,33 @@ const CampingEntry = () => {
 
                   {/* EMAIL */}
                   <div className="col-md-6">
-                    <label style={{ fontSize: '13px', fontWeight: '600', color: '#CBD5E1', marginBottom: '6px' }}>
+                    <label style={{ fontSize: '11.5px', fontWeight: '700', color: '#475569', marginBottom: '2px' }}>
                       Email Address
                     </label>
                     <input
                       type="email"
-                      className="form-control"
+                      className="form-control form-control-sm"
                       name="email"
                       placeholder="name@example.com"
                       value={formData.email}
                       onChange={handleChange}
                       style={{
-                        background: 'rgba(15, 23, 42, 0.8)',
-                        border: '1px solid #475569',
-                        color: '#F8FAFC',
-                        borderRadius: '12px',
-                        padding: '12px 14px'
+                        border: '1px solid #CBD5E1',
+                        borderRadius: '8px',
+                        padding: '6px 10px',
+                        fontSize: '12.5px'
                       }}
                     />
                   </div>
 
                   {/* AGE */}
                   <div className="col-md-6">
-                    <label style={{ fontSize: '13px', fontWeight: '600', color: '#CBD5E1', marginBottom: '6px' }}>
+                    <label style={{ fontSize: '11.5px', fontWeight: '700', color: '#475569', marginBottom: '2px' }}>
                       Age (Years)
                     </label>
                     <input
                       type="number"
-                      className="form-control"
+                      className="form-control form-control-sm"
                       name="age"
                       placeholder="e.g. 28"
                       value={formData.age}
@@ -495,36 +477,34 @@ const CampingEntry = () => {
                       min="1"
                       max="120"
                       style={{
-                        background: 'rgba(15, 23, 42, 0.8)',
-                        border: '1px solid #475569',
-                        color: '#F8FAFC',
-                        borderRadius: '12px',
-                        padding: '12px 14px'
+                        border: '1px solid #CBD5E1',
+                        borderRadius: '8px',
+                        padding: '6px 10px',
+                        fontSize: '12.5px'
                       }}
                     />
                   </div>
 
                   {/* INTEREST LEVEL */}
                   <div className="col-md-6">
-                    <label style={{ fontSize: '13px', fontWeight: '600', color: '#CBD5E1', marginBottom: '6px' }}>
+                    <label style={{ fontSize: '11.5px', fontWeight: '700', color: '#475569', marginBottom: '2px' }}>
                       Interest Level *
                     </label>
                     <select
-                      className="form-select"
+                      className="form-select form-select-sm"
                       name="interest"
                       value={formData.interest}
                       onChange={handleChange}
                       style={{
-                        background: 'rgba(15, 23, 42, 0.8)',
-                        border: '1px solid #475569',
-                        color: '#F8FAFC',
-                        borderRadius: '12px',
-                        padding: '12px 14px'
+                        border: '1px solid #CBD5E1',
+                        borderRadius: '8px',
+                        padding: '6px 10px',
+                        fontSize: '12.5px'
                       }}
                       required
                     >
                       {INTEREST_OPTIONS.map(opt => (
-                        <option key={opt.value} value={opt.value} style={{ background: '#0F172A' }}>
+                        <option key={opt.value} value={opt.value}>
                           {opt.label}
                         </option>
                       ))}
@@ -533,25 +513,24 @@ const CampingEntry = () => {
 
                   {/* SOURCE */}
                   <div className="col-md-6">
-                    <label style={{ fontSize: '13px', fontWeight: '600', color: '#CBD5E1', marginBottom: '6px' }}>
+                    <label style={{ fontSize: '11.5px', fontWeight: '700', color: '#475569', marginBottom: '2px' }}>
                       Registration Source *
                     </label>
                     <select
-                      className="form-select"
+                      className="form-select form-select-sm"
                       name="source"
                       value={formData.source}
                       onChange={handleChange}
                       style={{
-                        background: 'rgba(15, 23, 42, 0.8)',
-                        border: '1px solid #475569',
-                        color: '#F8FAFC',
-                        borderRadius: '12px',
-                        padding: '12px 14px'
+                        border: '1px solid #CBD5E1',
+                        borderRadius: '8px',
+                        padding: '6px 10px',
+                        fontSize: '12.5px'
                       }}
                       required
                     >
                       {SOURCE_OPTIONS.map(s => (
-                        <option key={s} value={s} style={{ background: '#0F172A' }}>
+                        <option key={s} value={s}>
                           {s}
                         </option>
                       ))}
@@ -560,21 +539,20 @@ const CampingEntry = () => {
 
                   {/* PREFERRED DATE */}
                   <div className="col-md-12">
-                    <label style={{ fontSize: '13px', fontWeight: '600', color: '#CBD5E1', marginBottom: '6px' }}>
+                    <label style={{ fontSize: '11.5px', fontWeight: '700', color: '#475569', marginBottom: '2px' }}>
                       Preferred Registration Date *
                     </label>
                     <input
                       type="date"
-                      className="form-control"
+                      className="form-control form-control-sm"
                       name="date"
                       value={formData.date}
                       onChange={handleChange}
                       style={{
-                        background: 'rgba(15, 23, 42, 0.8)',
-                        border: '1px solid #475569',
-                        color: '#F8FAFC',
-                        borderRadius: '12px',
-                        padding: '12px 14px'
+                        border: '1px solid #CBD5E1',
+                        borderRadius: '8px',
+                        padding: '6px 10px',
+                        fontSize: '12.5px'
                       }}
                       required
                     />
@@ -582,24 +560,23 @@ const CampingEntry = () => {
 
                 </div>
 
-                <div className="mt-4">
+                <div className="mt-3">
                   <button
                     type="submit"
-                    className="btn w-100"
+                    className="btn btn-primary w-100"
                     disabled={loading || activeCampings.length === 0}
                     style={{
-                      background: 'linear-gradient(90deg, #4F46E5 0%, #7C3AED 100%)',
+                      background: 'linear-gradient(90deg, #2563EB 0%, #1D4ED8 100%)',
                       border: 'none',
                       color: '#FFFFFF',
                       fontWeight: '800',
-                      fontSize: '16px',
-                      padding: '14px',
-                      borderRadius: '14px',
-                      boxShadow: '0 10px 25px rgba(79, 70, 229, 0.4)',
-                      transition: 'all 0.3s ease'
+                      fontSize: '14px',
+                      padding: '10px',
+                      borderRadius: '10px',
+                      boxShadow: '0 4px 14px rgba(37, 99, 235, 0.3)'
                     }}
                   >
-                    {loading ? 'Processing Registration...' : '🚀 Submit Camp Registration'}
+                    {loading ? 'Submitting Registration...' : 'Submit Registration & Generate Pass 🎫'}
                   </button>
                 </div>
               </form>
@@ -612,28 +589,29 @@ const CampingEntry = () => {
 
       {/* REGISTRATION PASS MODAL */}
       {showPassModal && submittedLead && (
-        <div className="modal show d-block" style={{ background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(8px)' }}>
-          <div className="modal-dialog modal-dialog-centered" style={{ maxWidth: '440px' }}>
-            <div className="modal-content text-dark" style={{ borderRadius: '24px', overflow: 'hidden', border: 'none' }}>
-              <div className="modal-header bg-gradient text-white p-4" style={{ background: 'linear-gradient(135deg, #4F46E5, #7C3AED)' }}>
+        <div className="modal show d-block" style={{ background: 'rgba(15, 23, 42, 0.6)', backdropFilter: 'blur(4px)' }}>
+          <div className="modal-dialog modal-dialog-centered" style={{ maxWidth: '400px' }}>
+            <div className="modal-content text-dark" style={{ borderRadius: '20px', overflow: 'hidden', border: 'none', boxShadow: '0 20px 40px rgba(0,0,0,0.15)' }}>
+              <div className="modal-header text-white p-3" style={{ background: 'linear-gradient(135deg, #1E40AF, #2563EB)' }}>
                 <div>
-                  <h5 className="modal-title font-weight-bold" style={{ fontWeight: '800' }}>
+                  <h6 className="modal-title" style={{ fontWeight: '800', margin: 0 }}>
                     🎫 Camp Registration Pass
-                  </h5>
-                  <small style={{ opacity: 0.9 }}>Ref: {submittedLead.passRef}</small>
+                  </h6>
+                  <small style={{ opacity: 0.9, fontSize: '11px' }}>Sri Chaitanya Mahaprabhu Museum</small>
                 </div>
                 <button type="button" className="btn-close btn-close-white" onClick={() => setShowPassModal(false)}></button>
               </div>
 
-              <div className="modal-body p-4 text-center">
-                <h4 style={{ color: '#4F46E5', fontWeight: '800' }}>
+              <div className="modal-body p-3 text-center">
+                <h5 style={{ color: '#2563EB', fontWeight: '800', margin: '4px 0' }}>
                   {submittedLead.camping_name}
-                </h4>
-                <p className="text-muted" style={{ fontSize: '13px' }}>
-                  📍 {submittedLead.location || 'Sri Chaitanya Museum'}
+                </h5>
+                <p className="text-muted" style={{ fontSize: '12px', margin: '0 0 10px 0' }}>
+                  📍 {submittedLead.location || 'Museum Campus'}
                 </p>
 
-                <div className="my-3 p-3 bg-light rounded-3 text-start" style={{ fontSize: '14px', lineHeight: '1.7' }}>
+                <div className="p-2.5 bg-light rounded-3 text-start" style={{ fontSize: '12.5px', lineHeight: '1.6' }}>
+                  <div><strong>Camp Name:</strong> {submittedLead.camping_name}</div>
                   <div><strong>Participant Name:</strong> {submittedLead.patient_name}</div>
                   <div><strong>Phone Number:</strong> {submittedLead.phone}</div>
                   {submittedLead.email && <div><strong>Email:</strong> {submittedLead.email}</div>}
@@ -643,24 +621,24 @@ const CampingEntry = () => {
                 </div>
 
                 {/* QR CODE */}
-                <div className="my-3">
+                <div className="my-2 text-center">
                   <img
-                    src={`https://api.qrserver.com/v1/create-qr-code/?size=140x140&data=${encodeURIComponent(`PassRef:${submittedLead.passRef}|Event:${submittedLead.camping_name}|Name:${submittedLead.patient_name}`)}`}
+                    src={`https://api.qrserver.com/v1/create-qr-code/?size=110x110&data=${encodeURIComponent(`Camp:${submittedLead.camping_name}|Name:${submittedLead.patient_name}|Phone:${submittedLead.phone}`)}`}
                     alt="Registration QR Code"
-                    className="border p-2 rounded-3 shadow-sm"
+                    className="border p-1.5 rounded-3 bg-white shadow-sm"
                   />
-                  <div className="mt-2 text-muted" style={{ fontSize: '11px' }}>
-                    Scan QR code at camp reception desk
+                  <div className="mt-1 text-muted" style={{ fontSize: '10.5px' }}>
+                    Scan QR code at camp entrance desk
                   </div>
                 </div>
               </div>
 
-              <div className="modal-footer bg-light d-flex justify-content-between p-3">
-                <button className="btn btn-secondary rounded-pill px-4" onClick={() => setShowPassModal(false)}>
+              <div className="modal-footer bg-light d-flex justify-content-between p-2.5">
+                <button className="btn btn-sm btn-secondary rounded-pill px-3" onClick={() => setShowPassModal(false)}>
                   Close
                 </button>
-                <button className="btn btn-primary rounded-pill px-4" style={{ background: '#4F46E5', border: 'none' }} onClick={handlePrintPass}>
-                  🖨️ Print Entry Pass
+                <button className="btn btn-sm btn-primary rounded-pill px-3" style={{ background: '#2563EB', border: 'none' }} onClick={handlePrintPass}>
+                  🖨️ Print Pass
                 </button>
               </div>
             </div>
