@@ -262,7 +262,7 @@ const CampingEntry = () => {
             {selectedCamp ? `${selectedCamp.camping_name} Registration` : 'Camp Registration'}
           </h2>
           <p style={{ color: '#64748B', fontSize: '12px', margin: 0 }}>
-            Register online for upcoming events hosted by Sri Chaitanya Mahaprabhu Museum.
+            Register online for upcoming event hosted by Sri Chaitanya Mahaprabhu Museum.
           </p>
         </div>
 
@@ -377,7 +377,7 @@ const CampingEntry = () => {
               </div>
 
               <div className="mt-3 pt-2 text-center border-top" style={{ fontSize: '11px', color: '#94A3B8' }}>
-                Verified Official Camp Portal | Sri Chaitanya Museum
+                Verified By Sri Chaitanya Museum
               </div>
             </div>
           </div>
