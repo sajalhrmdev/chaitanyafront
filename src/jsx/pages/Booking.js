@@ -49,12 +49,16 @@ const Booking = () => {
         );
 
         const options = {
-          key: 'rzp_live_RkF1Uzk5QpuC1K',
+          key: order.key_id || 'rzp_live_RkF1Uzk5QpuC1K',
           amount: order.amount,
-          currency: 'INR',
+          currency: order.currency || 'INR',
           name: 'Booking Payment',
           description: `${totalHours} Hours Booking`,
           order_id: order.id,
+          prefill: {
+            name: formData.firstname || '',
+            contact: formData.phone || ''
+          },
           handler: async function (response) {
             const finalPayload = { ...payload, payment: '1', txn_id: response.razorpay_payment_id };
             const res = await axios.post(API, finalPayload);
@@ -65,9 +69,12 @@ const Booking = () => {
         };
 
         const rzp = new window.Razorpay(options);
+        rzp.on('payment.failed', function (response) {
+          swal("Payment Failed", response.error?.description || "Payment was not completed", "error");
+        });
         rzp.open();
-      } catch {
-        swal("Error!", "Payment Failed", "error");
+      } catch (err) {
+        swal("Error!", err.response?.data?.error || "Payment order creation failed", "error");
       } finally { setLoading(false); }
       return;
     }

@@ -695,12 +695,16 @@ Amount: ${entry.total_amt}
         );
 
         const options = {
-          key: 'rzp_live_RkF1Uzk5QpuC1K',
+          key: order.key_id || 'rzp_live_RkF1Uzk5QpuC1K',
           amount: order.amount,
-          currency: 'INR',
+          currency: order.currency || 'INR',
           name: 'Sri Chaitanya Mahaprabhu Museum',
           description: 'Entry Ticket Payment',
           order_id: order.id,
+          prefill: {
+            name: formData.firstname || '',
+            contact: formData.phone || ''
+          },
           handler: async function (response) {
             const updatedData = {
               ...formData,
@@ -728,9 +732,12 @@ Amount: ${entry.total_amt}
         };
 
         const rzp = new window.Razorpay(options);
+        rzp.on('payment.failed', function (response) {
+          swal("Payment Failed", response.error?.description || "Payment was not completed", "error");
+        });
         rzp.open();
       } catch (err) {
-        swal("Error!", "Payment Failed", "error");
+        swal("Error!", err.response?.data?.error || "Payment order creation failed", "error");
       } finally {
         setLoading(false);
       }
