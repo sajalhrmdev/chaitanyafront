@@ -90,7 +90,7 @@
 //   return swal("Error!", "Discount cannot exceed total amount", "error");
 // }
 //     try {
-//       const response = await axios.post('https://sri-chaitanya-mahaprabhu-museum-entry.onrender.com/api/museum', formData);
+//       const response = await axios.post('https://chitanya-musium-backend-new-and-latest.onrender.com/api/museum', formData);
       
 //       swal("Success!", "Museum entry created successfully!", "success");
       
@@ -359,7 +359,7 @@
 
 //     try {
 //       await axios.post(
-//         'https://sri-chaitanya-mahaprabhu-museum-entry.onrender.com/api/museum',
+//         'https://chitanya-musium-backend-new-and-latest.onrender.com/api/museum',
 //         formData
 //       );
 
@@ -690,7 +690,7 @@ Amount: ${entry.total_amt}
     if (formData.payment === '1') {
       try {
         const { data: order } = await axios.post(
-          'https://chaitanyaback.onrender.com/api/razorpay/create-order',
+          'https://chitanya-musium-backend-new-and-latest.onrender.com/api/razorpay/create-order',
           { amount: formData.total_amt }
         );
 
@@ -713,7 +713,7 @@ Amount: ${entry.total_amt}
             };
 
             const res = await axios.post(
-              'https://chaitanyaback.onrender.com/api/museum',
+              'https://chitanya-musium-backend-new-and-latest.onrender.com/api/museum',
               updatedData
             );
 
@@ -747,7 +747,7 @@ Amount: ${entry.total_amt}
     // 🔥 Cash payment → direct save
     try {
       const res = await axios.post(
-        'https://chaitanyaback.onrender.com/api/museum',
+        'https://chitanya-musium-backend-new-and-latest.onrender.com/api/museum',
         formData
       );
 

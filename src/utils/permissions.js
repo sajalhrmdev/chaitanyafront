@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API = 'https://chaitanyaback.onrender.com/api';
+const API = 'https://chitanya-musium-backend-new-and-latest.onrender.com/api';
 
 // Load permissions for current user's role
 export const loadUserPermissions = async () => {

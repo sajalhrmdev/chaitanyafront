@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import swal from 'sweetalert';
 
-const API = 'https://chaitanyaback.onrender.com/api/booking';
+const API = 'https://chitanya-musium-backend-new-and-latest.onrender.com/api/booking';
 
 const SERVICE_CHARGE = 1000;
 const BOOKING_CHARGE = 3000; // for 3 hours
@@ -44,7 +44,7 @@ const Booking = () => {
     if (formData.payment === '1') {
       try {
         const { data: order } = await axios.post(
-          'https://chaitanyaback.onrender.com/api/razorpay/create-order',
+          'https://chitanya-musium-backend-new-and-latest.onrender.com/api/razorpay/create-order',
           { amount: totalAmt }
         );
 

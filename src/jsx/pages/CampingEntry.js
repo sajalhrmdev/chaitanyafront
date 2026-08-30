@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import swal from 'sweetalert';
+import jsPDF from 'jspdf';
+import QRCode from 'qrcode';
 
-const API = 'https://chaitanyaback.onrender.com/api/camping';
+const API = 'https://chitanya-musium-backend-new-and-latest.onrender.com/api/camping';
 
 const INTEREST_OPTIONS = [
   { value: 'High', label: '🔥 High Interest' },
@@ -79,13 +81,23 @@ const CampingEntry = () => {
     try {
       const { data } = await axios.post(`${API}/leads`, formData);
       
+      const campTitle = selectedCamp ? selectedCamp.camping_name : 'Camping Event';
+      const qrData = `Camp:${campTitle}|Name:${formData.patient_name}|Phone:${formData.phone}|Date:${formData.date}`;
+      let qrUrl = '';
+      try {
+        qrUrl = await QRCode.toDataURL(qrData, { margin: 1, width: 250 });
+      } catch (err) {
+        console.warn("QR code generation error", err);
+      }
+
       const leadRecord = {
         ...formData,
         id: data.id || Math.floor(1000 + Math.random() * 9000),
-        camping_name: selectedCamp ? selectedCamp.camping_name : 'Camping Event',
+        camping_name: campTitle,
         location: selectedCamp ? selectedCamp.location : '',
         organizer: selectedCamp ? selectedCamp.organizer_name : '',
-        contact: selectedCamp ? selectedCamp.contact_details : ''
+        contact: selectedCamp ? selectedCamp.contact_details : '',
+        qrUrl: qrUrl
       };
 
       setSubmittedLead(leadRecord);
@@ -117,113 +129,224 @@ const CampingEntry = () => {
     }
   };
 
-  const handlePrintPass = () => {
+  const handleDownloadPDF = async () => {
     if (!submittedLead) return;
 
-    const qrData = `Camp:${submittedLead.camping_name}|Name:${submittedLead.patient_name}|Phone:${submittedLead.phone}|Date:${submittedLead.date}`;
+    try {
+      let qrDataUrl = submittedLead.qrUrl;
+      if (!qrDataUrl) {
+        const qrData = `Camp:${submittedLead.camping_name}|Name:${submittedLead.patient_name}|Phone:${submittedLead.phone}|Date:${submittedLead.date}`;
+        qrDataUrl = await QRCode.toDataURL(qrData, { margin: 1, width: 250 });
+      }
 
-    const printWindow = window.open('', '', 'width=600,height=750');
-    printWindow.document.write(`
-      <html>
-        <head>
-          <title>Camp Registration Pass - ${submittedLead.camping_name}</title>
-          <style>
-            body {
-              font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-              width: 320px;
-              margin: 15px auto;
-              padding: 16px;
-              border: 2px dashed #2563EB;
-              border-radius: 12px;
-              text-align: center;
-              color: #0F172A;
-              background-color: #FFFFFF;
-            }
-            .header {
-              border-bottom: 2px solid #E2E8F0;
-              padding-bottom: 10px;
-              margin-bottom: 10px;
-            }
-            .title {
-              font-size: 15px;
-              font-weight: 800;
-              color: #1E40AF;
-              margin: 4px 0;
-              text-transform: uppercase;
-              letter-spacing: 0.5px;
-            }
-            .subtitle {
-              font-size: 11px;
-              color: #64748B;
-              margin: 0;
-            }
-            .camp-title {
-              font-size: 18px;
-              font-weight: 800;
-              color: #2563EB;
-              margin: 12px 0 6px 0;
-            }
-            .details {
-              text-align: left;
-              font-size: 12.5px;
-              line-height: 1.6;
-              margin: 10px 0;
-              background: #F8FAFC;
-              padding: 10px 12px;
-              border-radius: 8px;
-              border: 1px solid #E2E8F0;
-            }
-            .details p {
-              margin: 3px 0;
-            }
-            .qr-code {
-              margin: 12px 0 8px 0;
-            }
-            .footer {
-              font-size: 10.5px;
-              color: #64748B;
-              border-top: 1px dashed #CBD5E1;
-              padding-top: 8px;
-              margin-top: 10px;
-            }
-          </style>
-        </head>
-        <body>
-          <div class="header">
-            <h3 class="title">SRI CHAITANYA MAHAPRABHU MUSEUM</h3>
-            <p class="subtitle">Official Camp Registration Pass</p>
-          </div>
+      const doc = new jsPDF({
+        orientation: 'p',
+        unit: 'mm',
+        format: [100, 145]
+      });
 
-          <div class="camp-title">🏕️ ${submittedLead.camping_name}</div>
+      // Background Card
+      doc.setFillColor(255, 255, 255);
+      doc.rect(0, 0, 100, 145, 'F');
 
-          <div class="details">
-            <p><b>🏕️ Camp Name:</b> ${submittedLead.camping_name}</p>
-            <p><b>📍 Location:</b> ${submittedLead.location || 'Museum Campus'}</p>
-            <p><b>👤 Name:</b> ${submittedLead.patient_name}</p>
-            <p><b>📞 Phone:</b> ${submittedLead.phone}</p>
-            ${submittedLead.email ? `<p><b>✉️ Email:</b> ${submittedLead.email}</p>` : ''}
-            ${submittedLead.age ? `<p><b>🎂 Age:</b> ${submittedLead.age} yrs</p>` : ''}
-            <p><b>📅 Preferred Date:</b> ${submittedLead.date}</p>
-            <p><b>⭐ Interest:</b> ${submittedLead.interest}</p>
-          </div>
+      // Outer Border Box
+      doc.setDrawColor(37, 99, 235);
+      doc.setLineWidth(0.8);
+      doc.roundedRect(4, 4, 92, 137, 3, 3, 'S');
 
-          <div class="qr-code">
-            <img src="https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(qrData)}" alt="QR Code" />
-          </div>
+      // Header Banner
+      doc.setFillColor(30, 64, 175);
+      doc.rect(4, 4, 92, 18, 'F');
 
-          <div class="footer">
-            <p>Please present this pass at the camp entrance desk.</p>
-            <p>🌐 chaitanyamuseum.org | 📞 8617528955</p>
-          </div>
+      // Header Title
+      doc.setTextColor(255, 255, 255);
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(9);
+      doc.text('SRI CHAITANYA MAHAPRABHU MUSEUM', 50, 11, { align: 'center' });
 
-          <script>
-            window.print();
-            window.onafterprint = () => window.close();
-          </script>
-        </body>
-      </html>
-    `);
-    printWindow.document.close();
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(7.5);
+      doc.text('OFFICIAL CAMP REGISTRATION PASS', 50, 16, { align: 'center' });
+
+      // Camp Title
+      doc.setTextColor(37, 99, 235);
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(12);
+      const cName = submittedLead.camping_name || 'Camp Event';
+      doc.text(cName, 50, 28, { align: 'center' });
+
+      // Location Subtitle
+      doc.setTextColor(100, 116, 139);
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(8);
+      const locText = `Location: ${submittedLead.location || 'Museum Campus'}`;
+      doc.text(locText, 50, 33, { align: 'center' });
+
+      // Details Container Box
+      doc.setFillColor(248, 250, 252);
+      doc.setDrawColor(226, 232, 240);
+      doc.setLineWidth(0.3);
+      doc.roundedRect(7, 37, 86, 52, 2, 2, 'FD');
+
+      // Data Rows
+      doc.setFontSize(8.5);
+      let curY = 43;
+
+      const addRow = (label, value) => {
+        if (!value) return;
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(51, 65, 85);
+        doc.text(`${label}:`, 10, curY);
+
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(15, 23, 42);
+        const strVal = String(value);
+        const dispVal = strVal.length > 28 ? strVal.substring(0, 26) + '...' : strVal;
+        doc.text(dispVal, 38, curY);
+        curY += 6;
+      };
+
+      addRow('Camp Name', submittedLead.camping_name);
+      addRow('Participant', submittedLead.patient_name);
+      addRow('Phone', submittedLead.phone);
+      if (submittedLead.email) addRow('Email', submittedLead.email);
+      if (submittedLead.age) addRow('Age', `${submittedLead.age} yrs`);
+      addRow('Reg. Date', submittedLead.date);
+      addRow('Interest', submittedLead.interest);
+
+      // QR Code
+      if (qrDataUrl) {
+        const qrSize = 34;
+        const qrX = (100 - qrSize) / 2;
+        const qrY = 92;
+        doc.addImage(qrDataUrl, 'PNG', qrX, qrY, qrSize, qrSize);
+      }
+
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(7.5);
+      doc.setTextColor(100, 116, 139);
+      doc.text('Scan QR code at camp entrance desk', 50, 129, { align: 'center' });
+
+      // Dashed Separator
+      doc.setDrawColor(203, 213, 225);
+      doc.setLineDashPattern([1, 1], 0);
+      doc.line(8, 132, 92, 132);
+      doc.setLineDashPattern([], 0);
+
+      // Footer
+      doc.setFontSize(6.5);
+      doc.setTextColor(100, 116, 139);
+      doc.text('Please present this pass at the camp entrance desk.', 50, 136, { align: 'center' });
+      doc.text('🌐 chaitanyamuseum.org | 📞 8617528955', 50, 140, { align: 'center' });
+
+      // Direct file download for Mobile & Desktop
+      const sanitizedName = (submittedLead.patient_name || 'Participant').replace(/[^a-zA-Z0-9]/g, '_');
+      doc.save(`Camp_Pass_${sanitizedName}.pdf`);
+    } catch (error) {
+      console.error("Failed to generate PDF pass:", error);
+      swal("Error!", "Failed to download PDF pass. Please try again.", "error");
+    }
+  };
+
+  const handlePrintPass = async () => {
+    if (!submittedLead) return;
+
+    // Trigger PDF download first (guaranteeing file saved on mobile)
+    await handleDownloadPDF();
+
+    // Trigger iframe print for desktop browser compatibility
+    try {
+      let qrDataUrl = submittedLead.qrUrl;
+      if (!qrDataUrl) {
+        const qrData = `Camp:${submittedLead.camping_name}|Name:${submittedLead.patient_name}|Phone:${submittedLead.phone}|Date:${submittedLead.date}`;
+        qrDataUrl = await QRCode.toDataURL(qrData, { margin: 1, width: 200 });
+      }
+
+      const htmlContent = `
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <title>Camp Registration Pass - ${submittedLead.camping_name}</title>
+            <style>
+              @page { size: auto; margin: 0; }
+              body {
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                width: 320px;
+                margin: 15px auto;
+                padding: 16px;
+                border: 2px dashed #2563EB;
+                border-radius: 12px;
+                text-align: center;
+                color: #0F172A;
+                background-color: #FFFFFF;
+                -webkit-print-color-adjust: exact;
+              }
+              .header { border-bottom: 2px solid #E2E8F0; padding-bottom: 10px; margin-bottom: 10px; }
+              .title { font-size: 14px; font-weight: 800; color: #1E40AF; margin: 4px 0; text-transform: uppercase; }
+              .subtitle { font-size: 11px; color: #64748B; margin: 0; }
+              .camp-title { font-size: 17px; font-weight: 800; color: #2563EB; margin: 12px 0 6px 0; }
+              .details { text-align: left; font-size: 12px; line-height: 1.6; margin: 10px 0; background: #F8FAFC; padding: 10px 12px; border-radius: 8px; border: 1px solid #E2E8F0; }
+              .details p { margin: 3px 0; }
+              .qr-code { margin: 12px 0 8px 0; }
+              .footer { font-size: 10px; color: #64748B; border-top: 1px dashed #CBD5E1; padding-top: 8px; margin-top: 10px; }
+            </style>
+          </head>
+          <body>
+            <div class="header">
+              <h3 class="title">SRI CHAITANYA MAHAPRABHU MUSEUM</h3>
+              <p class="subtitle">Official Camp Registration Pass</p>
+            </div>
+            <div class="camp-title">🏕️ ${submittedLead.camping_name}</div>
+            <div class="details">
+              <p><b>🏕️ Camp Name:</b> ${submittedLead.camping_name}</p>
+              <p><b>📍 Location:</b> ${submittedLead.location || 'Museum Campus'}</p>
+              <p><b>👤 Name:</b> ${submittedLead.patient_name}</p>
+              <p><b>📞 Phone:</b> ${submittedLead.phone}</p>
+              ${submittedLead.email ? `<p><b>✉️ Email:</b> ${submittedLead.email}</p>` : ''}
+              ${submittedLead.age ? `<p><b>🎂 Age:</b> ${submittedLead.age} yrs</p>` : ''}
+              <p><b>📅 Preferred Date:</b> ${submittedLead.date}</p>
+              <p><b>⭐ Interest:</b> ${submittedLead.interest}</p>
+            </div>
+            <div class="qr-code">
+              <img src="${qrDataUrl || `https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(`Camp:${submittedLead.camping_name}|Name:${submittedLead.patient_name}|Phone:${submittedLead.phone}`)}`}" width="120" alt="QR Code" />
+            </div>
+            <div class="footer">
+              <p>Please present this pass at the camp entrance desk.</p>
+              <p>🌐 chaitanyamuseum.org | 📞 8617528955</p>
+            </div>
+          </body>
+        </html>
+      `;
+
+      let iframe = document.getElementById('print-pass-iframe');
+      if (iframe) iframe.remove();
+
+      iframe = document.createElement('iframe');
+      iframe.id = 'print-pass-iframe';
+      iframe.style.position = 'fixed';
+      iframe.style.right = '0';
+      iframe.style.bottom = '0';
+      iframe.style.width = '0px';
+      iframe.style.height = '0px';
+      iframe.style.border = '0px';
+      document.body.appendChild(iframe);
+
+      const doc = iframe.contentWindow.document;
+      doc.open();
+      doc.write(htmlContent);
+      doc.close();
+
+      setTimeout(() => {
+        try {
+          iframe.contentWindow.focus();
+          iframe.contentWindow.print();
+        } catch (e) {
+          console.warn("Iframe print error", e);
+        }
+      }, 400);
+    } catch (e) {
+      console.warn("Print fallback error", e);
+    }
   };
 
   return (
@@ -621,7 +744,7 @@ const CampingEntry = () => {
                 {/* QR CODE */}
                 <div className="my-2 text-center">
                   <img
-                    src={`https://api.qrserver.com/v1/create-qr-code/?size=110x110&data=${encodeURIComponent(`Camp:${submittedLead.camping_name}|Name:${submittedLead.patient_name}|Phone:${submittedLead.phone}`)}`}
+                    src={submittedLead.qrUrl || `https://api.qrserver.com/v1/create-qr-code/?size=110x110&data=${encodeURIComponent(`Camp:${submittedLead.camping_name}|Name:${submittedLead.patient_name}|Phone:${submittedLead.phone}`)}`}
                     alt="Registration QR Code"
                     className="border p-1.5 rounded-3 bg-white shadow-sm"
                   />
@@ -631,13 +754,18 @@ const CampingEntry = () => {
                 </div>
               </div>
 
-              <div className="modal-footer bg-light d-flex justify-content-between p-2.5">
+              <div className="modal-footer bg-light d-flex justify-content-between align-items-center p-2.5">
                 <button className="btn btn-sm btn-secondary rounded-pill px-3" onClick={() => setShowPassModal(false)}>
                   Close
                 </button>
-                <button className="btn btn-sm btn-primary rounded-pill px-3" style={{ background: '#2563EB', border: 'none' }} onClick={handlePrintPass}>
-                  🖨️ Print Pass
-                </button>
+                <div className="d-flex gap-2">
+                  <button className="btn btn-sm btn-outline-primary rounded-pill px-3" onClick={handleDownloadPDF}>
+                    📥 Save PDF
+                  </button>
+                  <button className="btn btn-sm btn-primary rounded-pill px-3" style={{ background: '#2563EB', border: 'none' }} onClick={handlePrintPass}>
+                    🖨️ Print Pass
+                  </button>
+                </div>
               </div>
             </div>
           </div>

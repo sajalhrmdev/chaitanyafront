@@ -1,7 +1,7 @@
 import axios from 'axios';
 
-// const API_BASE_URL = 'https://sri-chaitanya-mahaprabhu-museum-entry.onrender.com/api';
-const API_BASE_URL = 'https://chaitanyaback.onrender.com/api';
+// const API_BASE_URL = 'https://chitanya-musium-backend-new-and-latest.onrender.com/api';
+const API_BASE_URL = 'https://chitanya-musium-backend-new-and-latest.onrender.com/api';
 
 
 // Token interceptor

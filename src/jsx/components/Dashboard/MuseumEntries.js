@@ -49,8 +49,8 @@ const handleSearchChange = (e) => {
   const fetchEntries = async () => {  
     try {
       setLoading(true);
-   // const response = await axios.get('https://sri-chaitanya-mahaprabhu-museum-entry.onrender.com/api/museum');
-      const response = await axios.get('https://chaitanyaback.onrender.com/api/museum');
+   // const response = await axios.get('https://chitanya-musium-backend-new-and-latest.onrender.com/api/museum');
+      const response = await axios.get('https://chitanya-musium-backend-new-and-latest.onrender.com/api/museum');
       
       setEntries(response.data);
     } catch (error) {
@@ -81,8 +81,8 @@ const handleSearchChange = (e) => {
   const handleSave = async () => {
     try {
       setLoading(true);
-      // await axios.put(`https://sri-chaitanya-mahaprabhu-museum-entry.onrender.com/api/museum/${editingEntry.id}`, formData);
-        await axios.put(`https://chaitanyaback.onrender.com/api/museum/${editingEntry.id}`, formData);
+      // await axios.put(`https://chitanya-musium-backend-new-and-latest.onrender.com/api/museum/${editingEntry.id}`, formData);
+        await axios.put(`https://chitanya-musium-backend-new-and-latest.onrender.com/api/museum/${editingEntry.id}`, formData);
      
       swal('Success', 'Entry updated successfully', 'success');
       setShowModal(false);
@@ -106,8 +106,8 @@ const handleSearchChange = (e) => {
     if (willDelete) {
       try {
         setLoading(true);
-        // await axios.delete(`https://sri-chaitanya-mahaprabhu-museum-entry.onrender.com/api/museum/${entryId}`);
-          await axios.delete(`https://chaitanyaback.onrender.com/api/museum/${entryId}`);
+        // await axios.delete(`https://chitanya-musium-backend-new-and-latest.onrender.com/api/museum/${entryId}`);
+          await axios.delete(`https://chitanya-musium-backend-new-and-latest.onrender.com/api/museum/${entryId}`);
         swal('Success', 'Entry deleted successfully', 'success');
          handleSearch()
       } catch (error) {
@@ -124,9 +124,9 @@ const handleSearch = async () => {
     setLoading(true);
 
     const res = await axios.post(
-      // 'https://sri-chaitanya-mahaprabhu-museum-entry.onrender.com/api/museum/search',
+      // 'https://chitanya-musium-backend-new-and-latest.onrender.com/api/museum/search',
       // 'http://localhost:3003/api/museum/search',
-      'https://chaitanyaback.onrender.com/api/museum/search',
+      'https://chitanya-musium-backend-new-and-latest.onrender.com/api/museum/search',
       searchData
     );
 

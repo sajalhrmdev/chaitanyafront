@@ -6,7 +6,7 @@ import 'jspdf-autotable';
 import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
 
-const API = 'https://chaitanyaback.onrender.com/api/booking';
+const API = 'https://chitanya-musium-backend-new-and-latest.onrender.com/api/booking';
 
 const BookingList = () => {
   const [bookings, setBookings] = useState([]);
