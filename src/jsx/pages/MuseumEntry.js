@@ -533,10 +533,11 @@ import axios from 'axios';
 import swal from 'sweetalert';
 
 const MuseumEntry = () => {
-  const GALLERY_PRICE = 50;
-  const MOVIE_PRICE = 30;
-const authStatus = localStorage.getItem('isAuthenticated');
-const role = localStorage.getItem('userRole');
+  const [galleryPrice, setGalleryPrice] = useState(50);
+  const [moviePrice, setMoviePrice] = useState(30);
+
+  const authStatus = localStorage.getItem('isAuthenticated');
+  const role = localStorage.getItem('userRole');
   const [formData, setFormData] = useState({
     firstname: '',
     phone: '',
@@ -557,12 +558,11 @@ const role = localStorage.getItem('userRole');
   useEffect(() => {
     const persons = Number(formData.num_of_persons) || 0;
     const movieTickets = Number(formData.movie_show) || 0;
-  const discount = Math.max(0, Number(formData.discount) || 0);
+    const discount = Math.max(0, Number(formData.discount) || 0);
+    const gPrice = Number(galleryPrice) >= 0 ? Number(galleryPrice) : 0;
+    const mPrice = Number(moviePrice) >= 0 ? Number(moviePrice) : 0;
 
-    let total = persons * GALLERY_PRICE; // mandatory
-    total += movieTickets * MOVIE_PRICE;
-
-    total = total - discount;
+    let total = (persons * gPrice) + (movieTickets * mPrice) - discount;
 
     setFormData(prev => ({
       ...prev,
@@ -571,7 +571,9 @@ const role = localStorage.getItem('userRole');
   }, [
     formData.num_of_persons,
     formData.movie_show,
-    formData.discount
+    formData.discount,
+    galleryPrice,
+    moviePrice
   ]);
 
   const handleChange = (e) => {
@@ -582,18 +584,27 @@ const role = localStorage.getItem('userRole');
       [name]: value
     }));
   };
-const handlePrint = (entry) => {
-  const qrData = `
+
+  const handlePrint = (entry) => {
+    const gPrice = Number(galleryPrice) >= 0 ? Number(galleryPrice) : 50;
+    const mPrice = Number(moviePrice) >= 0 ? Number(moviePrice) : 30;
+    const pCount = Number(entry.num_of_persons) || 1;
+    const mCount = Number(entry.movie_show) || 0;
+    const dAmt = Number(entry.discount) || 0;
+    const entryTotal = pCount * gPrice;
+    const movieTotal = mCount * mPrice;
+
+    const qrData = `
 Name: ${entry.firstname}
 Phone: ${entry.phone}
 Date: ${entry.date}
-Persons: ${entry.num_of_persons}
+Persons: ${pCount}
 Amount: ${entry.total_amt}
 `;
 
-  const printWindow = window.open('', '', );
+    const printWindow = window.open('', '', );
 
-  printWindow.document.write(`
+    printWindow.document.write(`
     <html>
       <head>
         <title>Entry Pass</title>
@@ -633,7 +644,7 @@ Amount: ${entry.total_amt}
         <p><b>Phone :</b> ${entry.phone}</p>
         <p><b>Address :</b> ${entry.address}</p>
         <p><b>Date :</b> ${entry.date}</p>
-        <p><b>Persons :</b> ${entry.num_of_persons}</p>
+        <p><b>Persons :</b> ${pCount}</p>
 
         <br/>
 
@@ -644,15 +655,15 @@ Amount: ${entry.total_amt}
 
         <p class="bold">Donation Details</p>
 
-        <p>Entry : ₹50 x ${entry.num_of_persons} = ₹${entry.num_of_persons * 50}</p>
+        <p>Entry : ₹${gPrice} x ${pCount} = ₹${entryTotal}</p>
 
         <p>Movie : ${
-          Number(entry.movie_show) > 0
-            ? `${entry.movie_show} x ₹30 = ₹${entry.movie_show * 30}`
+          mCount > 0
+            ? `${mCount} x ₹${mPrice} = ₹${movieTotal}`
             : "None"
         }</p>
 
-        <p>Discount : ₹${entry.discount}</p>
+        <p>Discount : ₹${dAmt}</p>
 
         <div class="line"></div>
 
@@ -675,8 +686,9 @@ Amount: ${entry.total_amt}
     </html>
   `);
 
-  printWindow.document.close();
-};
+    printWindow.document.close();
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -724,7 +736,7 @@ Amount: ${entry.total_amt}
 
             setFormData({
               firstname: '', phone: '', address: '',
-              num_of_persons: '1', total_amt: '50', payment: '0',
+              num_of_persons: '1', total_amt: (Number(galleryPrice) || 50).toString(), payment: '0',
               gallery: '1', movie_show: '0', discount: '0', txn_id: ''
             });
           },
@@ -758,7 +770,7 @@ Amount: ${entry.total_amt}
 
       setFormData({
         firstname: '', phone: '', address: '',
-        num_of_persons: '1', total_amt: '50', payment: '0',
+        num_of_persons: '1', total_amt: (Number(galleryPrice) || 50).toString(), payment: '0',
         gallery: '1', movie_show: '0', discount: '0', txn_id: ''
       });
 
@@ -769,151 +781,445 @@ Amount: ${entry.total_amt}
     }
   };
 
-
-
   return (
     <div className="container py-4">
-      <h1 className="text-center mb-4">Chaitanya Mahaprabhu Museum Entry Pass</h1>
-      {/* 🔥 PRICE DISPLAY */}
-      <div className="row mb-4">
-        <div className="col-md-6">
-          <div className="card text-center shadow border-0 rounded-4">
-            <div className="card-body">
-              <h6 className="text-muted">Museum Entry</h6>
-              <h2 className="text-primary fw-bold">₹{GALLERY_PRICE}</h2>
-              <small>per person</small>
-            </div>
-          </div>
+      {/* 🌟 Header */}
+      <div className="text-center mb-4">
+        <div className="d-inline-flex align-items-center gap-2 px-3 py-1 rounded-pill mb-2"
+             style={{ background: 'rgba(79, 172, 254, 0.12)', border: '1px solid rgba(79, 172, 254, 0.25)' }}>
+          <span className="badge rounded-pill" style={{ background: 'linear-gradient(45deg, #4facfe, #00f2fe)', color: '#fff', fontSize: '10px' }}>POS</span>
+          <span className="small fw-bold" style={{ color: '#0284c7' }}>Real-time Entry Pass & Billing Counter</span>
         </div>
-
-        <div className="col-md-6">
-          <div className="card text-center shadow border-0 rounded-4">
-            <div className="card-body">
-              <h6 className="text-muted">Movie Ticket</h6>
-              <h2 className="text-success fw-bold">₹{MOVIE_PRICE}</h2>
-              <small>per ticket</small>
-            </div>
-          </div>
-        </div>
+        <h2 className="fw-extrabold text-dark tracking-tight mb-1" style={{ fontSize: '1.85rem', letterSpacing: '-0.5px' }}>
+          Sri Chaitanya Mahaprabhu Museum
+        </h2>
+        <p className="text-muted small mb-0">Fast counter ticketing, dynamic rate adjustment & instant pass generation</p>
       </div>
 
-      <div className="card shadow-lg border-0 rounded-4">
-        <div className="card-body">
+      {/* 💳 Main Card */}
+      <div className="card shadow-xl border-0 rounded-4 mx-auto overflow-hidden" 
+           style={{ maxWidth: '920px', background: '#ffffff', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.08)' }}>
+        
+        {/* Top subtle accent bar */}
+        <div style={{ height: '4px', background: 'linear-gradient(90deg, #4facfe 0%, #00f2fe 50%, #43e97b 100%)' }} />
 
+        <div className="card-body p-4 p-md-5">
           <form onSubmit={handleSubmit}>
 
-            {/* 👤 INFO */}
-            <h5 className="mb-3 fw-bold">👤 Visitor Info</h5>
+            {/* 👤 VISITOR INFO SECTION */}
+            <div className="d-flex align-items-center gap-2 mb-3 pb-2 border-bottom">
+              <div className="d-flex align-items-center justify-content-center rounded-circle"
+                   style={{ width: '36px', height: '36px', background: 'rgba(79, 172, 254, 0.12)', color: '#0284c7', fontSize: '1.1rem' }}>
+                👤
+              </div>
+              <div>
+                <h5 className="mb-0 fw-bold text-dark" style={{ fontSize: '1.1rem' }}>Visitor Information</h5>
+                <small className="text-muted">Enter primary contact & address</small>
+              </div>
+            </div>
 
-            <div className="row">
-              <div className="col-md-6 mb-3">
-                <input className="form-control form-control-lg"
-                  placeholder="Full Name"
-                  name="firstname"
-                  value={formData.firstname}
-                  onChange={handleChange}
-                  required />
+            <div className="row g-3 mb-4">
+              <div className="col-md-6">
+                <label className="form-label text-secondary small fw-semibold mb-1">Full Name <span className="text-danger">*</span></label>
+                <div className="input-group">
+                  <span className="input-group-text bg-light border-end-0 text-muted" style={{ borderRadius: '10px 0 0 10px' }}>
+                    <i className="fa fa-user" />
+                  </span>
+                  <input
+                    className="form-control form-control-lg border-start-0"
+                    style={{ borderRadius: '0 10px 10px 0', fontSize: '0.95rem' }}
+                    placeholder="e.g. Rahul Sharma"
+                    name="firstname"
+                    value={formData.firstname}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
               </div>
 
-              <div className="col-md-6 mb-3">
-                <input className="form-control form-control-lg"
-                  placeholder="Phone"
-                  name="phone"
-                  value={formData.phone}
-                  onChange={handleChange}
-                  required />
+              <div className="col-md-6">
+                <label className="form-label text-secondary small fw-semibold mb-1">Phone Number <span className="text-danger">*</span></label>
+                <div className="input-group">
+                  <span className="input-group-text bg-light border-end-0 text-muted" style={{ borderRadius: '10px 0 0 10px' }}>
+                    <i className="fa fa-phone" />
+                  </span>
+                  <input
+                    className="form-control form-control-lg border-start-0"
+                    style={{ borderRadius: '0 10px 10px 0', fontSize: '0.95rem' }}
+                    placeholder="10-digit mobile number"
+                    name="phone"
+                    value={formData.phone}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
               </div>
 
-              <div className="col-md-12 mb-3">
-                <textarea className="form-control"
-                  placeholder="Address"
+              <div className="col-12">
+                <label className="form-label text-secondary small fw-semibold mb-1">Address / City <span className="text-danger">*</span></label>
+                <textarea
+                  className="form-control"
+                  rows="2"
+                  style={{ borderRadius: '10px', fontSize: '0.95rem' }}
+                  placeholder="Visitor's city or residential address"
                   name="address"
                   value={formData.address}
                   onChange={handleChange}
-                  required />
+                  required
+                />
               </div>
             </div>
 
-            {/* 🎟️ TICKETS */}
-            <h5 className="mt-4 fw-bold">🎟️ Ticket Info</h5>
-
-            <div className="row">
-              <div className="col-md-4 mb-3">
-                <label>Persons</label>
-                <input type="number"
-                  className="form-control"
-                  name="num_of_persons"
-                  value={formData.num_of_persons}
-                  onChange={handleChange}
-                  min="1" />
+            {/* 🎟️ TICKET ITEMS & BILLING SECTION */}
+            <div className="d-flex align-items-center justify-content-between mb-3 pt-3 pb-2 border-bottom">
+              <div className="d-flex align-items-center gap-2">
+                <div className="d-flex align-items-center justify-content-center rounded-circle"
+                     style={{ width: '36px', height: '36px', background: 'rgba(67, 233, 123, 0.12)', color: '#16a34a', fontSize: '1.1rem' }}>
+                  🎟️
+                </div>
+                <div>
+                  <h5 className="mb-0 fw-bold text-dark" style={{ fontSize: '1.1rem' }}>Ticket Selection & Live Rates</h5>
+                  <small className="text-muted">Adjust quantity and unit rates directly</small>
+                </div>
               </div>
+              <span className="badge px-3 py-2 rounded-pill fw-semibold"
+                    style={{ background: '#f8fafc', color: '#475569', border: '1px solid #e2e8f0', fontSize: '11px' }}>
+                ⚡ Auto Recalculating
+              </span>
+            </div>
 
-              <div className="col-md-4 mb-3">
-                <label>Movie Tickets</label>
-                <input type="number"
-                  className="form-control"
-                  name="movie_show"
-                  value={formData.movie_show}
-                  onChange={handleChange}
-                  min="0"
-                  max={formData.num_of_persons} />
-              </div>
-                {authStatus  && <div className="col-md-4 mb-3">
-                <label>Discount</label>
-                <input
-  type="number"
-  className="form-control"
-  name="discount"
-  value={formData.discount}
-  onChange={(e) => {
-    const val = e.target.value;
-    if (val < 0) return; // ❌ block negative
-    handleChange(e);
-  }}
-  min="0"
-/>
-              </div>}
-
+            {/* Itemized Billing Cards */}
+            <div className="d-flex flex-column gap-3 mb-4">
               
-            </div>
+              {/* Card 1: Museum Entry */}
+              <div className="p-3 rounded-4 transition-all"
+                   style={{ background: '#f8fafc', border: '1px solid #e2e8f0', boxShadow: '0 2px 8px rgba(0,0,0,0.02)' }}>
+                <div className="row align-items-center g-3">
+                  <div className="col-12 col-md-5 d-flex align-items-center gap-3">
+                    <div className="rounded-3 d-flex align-items-center justify-content-center flex-shrink-0"
+                         style={{ width: '44px', height: '44px', background: 'linear-gradient(135deg, #4facfe, #00f2fe)', color: '#fff', fontSize: '1.3rem', borderRadius: '12px' }}>
+                      🏛️
+                    </div>
+                    <div>
+                      <h6 className="mb-0 fw-bold text-dark">Museum Entry</h6>
+                      <small className="text-muted">Standard gallery pass per person</small>
+                    </div>
+                  </div>
 
-            {/* 💰 TOTAL BOX */}
-            <div className="mt-3 p-3 rounded-4 bg-dark text-white text-center">
-              <h4 className="mb-0">Total: ₹ {formData.total_amt}</h4>
-            </div>
+                  <div className="col-6 col-md-3">
+                    <label className="form-label text-muted small fw-semibold mb-1 d-block">Persons (Qty)</label>
+                    <div className="input-group">
+                      <input
+                        type="number"
+                        className="form-control form-control-lg text-center fw-bold text-dark"
+                        style={{ borderRadius: '10px', background: '#ffffff' }}
+                        name="num_of_persons"
+                        value={formData.num_of_persons}
+                        onChange={handleChange}
+                        min="1"
+                      />
+                    </div>
+                  </div>
 
-            {/* 💳 PAYMENT */}
-            <h5 className="mt-4 fw-bold">💳 Payment</h5>
+                  <div className="col-6 col-md-2">
+                    <label className="form-label text-muted small fw-semibold mb-1 d-block">Rate (₹)</label>
+                    <div className="input-group">
+                      <span className="input-group-text bg-white border-end-0 text-primary fw-bold" style={{ borderRadius: '10px 0 0 10px', fontSize: '14px' }}>₹</span>
+                      <input
+                        type="number"
+                        className="form-control form-control-lg text-center fw-bold text-primary border-start-0"
+                        style={{ borderRadius: '0 10px 10px 0', background: '#ffffff' }}
+                        value={galleryPrice}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setGalleryPrice(val === '' ? '' : Math.max(0, Number(val)));
+                        }}
+                        min="0"
+                        title="Edit Museum Entry Rate per person"
+                      />
+                    </div>
+                  </div>
 
-            <div className="row">
-              <div className="col-md-6 mb-3">
-                <select className="form-control"
-                  name="payment"
-                  value={formData.payment}
-                  onChange={handleChange}>
-                  <option value="0">Cash</option>
-                  <option value="1">Online</option>
-                </select>
+                  <div className="col-12 col-md-2 text-md-end text-center">
+                    <label className="form-label text-muted small fw-semibold mb-1 d-block">Subtotal</label>
+                    <div className="fw-bolder fs-5 text-primary">
+                      ₹{(Number(formData.num_of_persons) || 0) * (Number(galleryPrice) || 0)}
+                    </div>
+                  </div>
+                </div>
               </div>
 
-              <div className="col-md-6 mb-3">
-                <input className="form-control"
-                  placeholder="Transaction ID"
+              {/* Card 2: Movie Ticket */}
+              <div className="p-3 rounded-4 transition-all"
+                   style={{ background: '#f8fafc', border: '1px solid #e2e8f0', boxShadow: '0 2px 8px rgba(0,0,0,0.02)' }}>
+                <div className="row align-items-center g-3">
+                  <div className="col-12 col-md-5 d-flex align-items-center gap-3">
+                    <div className="rounded-3 d-flex align-items-center justify-content-center flex-shrink-0"
+                         style={{ width: '44px', height: '44px', background: 'linear-gradient(135deg, #10b981, #059669)', color: '#fff', fontSize: '1.3rem', borderRadius: '12px' }}>
+                      🎬
+                    </div>
+                    <div>
+                      <h6 className="mb-0 fw-bold text-dark">Movie Ticket</h6>
+                      <small className="text-muted">3D Audio-visual show pass</small>
+                    </div>
+                  </div>
+
+                  <div className="col-6 col-md-3">
+                    <label className="form-label text-muted small fw-semibold mb-1 d-block">Tickets (Qty)</label>
+                    <div className="input-group">
+                      <input
+                        type="number"
+                        className="form-control form-control-lg text-center fw-bold text-dark"
+                        style={{ borderRadius: '10px', background: '#ffffff' }}
+                        name="movie_show"
+                        value={formData.movie_show}
+                        onChange={handleChange}
+                        min="0"
+                        max={formData.num_of_persons}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="col-6 col-md-2">
+                    <label className="form-label text-muted small fw-semibold mb-1 d-block">Rate (₹)</label>
+                    <div className="input-group">
+                      <span className="input-group-text bg-white border-end-0 text-success fw-bold" style={{ borderRadius: '10px 0 0 10px', fontSize: '14px' }}>₹</span>
+                      <input
+                        type="number"
+                        className="form-control form-control-lg text-center fw-bold text-success border-start-0"
+                        style={{ borderRadius: '0 10px 10px 0', background: '#ffffff' }}
+                        value={moviePrice}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setMoviePrice(val === '' ? '' : Math.max(0, Number(val)));
+                        }}
+                        min="0"
+                        title="Edit Movie Ticket Rate per ticket"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="col-12 col-md-2 text-md-end text-center">
+                    <label className="form-label text-muted small fw-semibold mb-1 d-block">Subtotal</label>
+                    <div className="fw-bolder fs-5 text-success">
+                      ₹{(Number(formData.movie_show) || 0) * (Number(moviePrice) || 0)}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Card 3: Special Discount (If Authenticated) */}
+              {authStatus && (
+                <div className="p-3 rounded-4 transition-all"
+                     style={{ background: '#fffbeb', border: '1px dashed #f59e0b', boxShadow: '0 2px 8px rgba(245,158,11,0.05)' }}>
+                  <div className="row align-items-center g-3">
+                    <div className="col-12 col-md-5 d-flex align-items-center gap-3">
+                      <div className="rounded-3 d-flex align-items-center justify-content-center flex-shrink-0"
+                           style={{ width: '44px', height: '44px', background: 'linear-gradient(135deg, #f59e0b, #d97706)', color: '#fff', fontSize: '1.3rem', borderRadius: '12px' }}>
+                        🏷️
+                      </div>
+                      <div>
+                        <h6 className="mb-0 fw-bold text-dark">Special Concession / Discount</h6>
+                        <small className="text-muted">Authorized admin reduction</small>
+                      </div>
+                    </div>
+
+                    <div className="col-12 col-md-5">
+                      <label className="form-label text-muted small fw-semibold mb-1 d-block">Discount Amount (₹)</label>
+                      <div className="input-group">
+                        <span className="input-group-text bg-white border-end-0 text-danger fw-bold" style={{ borderRadius: '10px 0 0 10px', fontSize: '14px' }}>₹</span>
+                        <input
+                          type="number"
+                          className="form-control form-control-lg fw-bold text-danger border-start-0"
+                          style={{ borderRadius: '0 10px 10px 0', background: '#ffffff' }}
+                          name="discount"
+                          value={formData.discount}
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            if (val < 0) return;
+                            handleChange(e);
+                          }}
+                          min="0"
+                          placeholder="0"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="col-12 col-md-2 text-md-end text-center">
+                      <label className="form-label text-muted small fw-semibold mb-1 d-block">Deduction</label>
+                      <div className="fw-bolder fs-5 text-danger">
+                        - ₹{Number(formData.discount) || 0}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+            </div>
+
+            {/* 💰 PREMIUM INVOICE GRAND TOTAL CARD */}
+            <div className="p-4 mb-4 rounded-4 text-white position-relative overflow-hidden shadow-lg"
+                 style={{
+                   background: 'linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #0f172a 100%)',
+                   border: '1px solid rgba(255, 255, 255, 0.1)'
+                 }}>
+              
+              {/* Background ambient glow effect */}
+              <div style={{
+                position: 'absolute',
+                top: '-40%',
+                right: '-10%',
+                width: '300px',
+                height: '300px',
+                background: 'radial-gradient(circle, rgba(79, 172, 254, 0.2) 0%, rgba(0, 0, 0, 0) 70%)',
+                pointerEvents: 'none'
+              }} />
+
+              <div className="row align-items-center position-relative g-3">
+                <div className="col-12 col-md-7">
+                  <div className="d-flex align-items-center gap-2 mb-2">
+                    <span className="badge bg-white bg-opacity-10 text-light px-2 py-1 rounded-pill small border border-white border-opacity-10">
+                      🧾 Live Invoice Summary
+                    </span>
+                  </div>
+                  <div className="text-white-50 small mb-1">
+                    Museum: <span className="text-white fw-semibold">{Number(formData.num_of_persons) || 0} × ₹{Number(galleryPrice) || 0}</span>
+                    <span className="mx-2">•</span>
+                    Movie: <span className="text-white fw-semibold">{Number(formData.movie_show) || 0} × ₹{Number(moviePrice) || 0}</span>
+                    {Number(formData.discount) > 0 && (
+                      <>
+                        <span className="mx-2">•</span>
+                        Discount: <span className="text-warning fw-semibold">- ₹{formData.discount}</span>
+                      </>
+                    )}
+                  </div>
+                  <small className="text-white-50" style={{ fontSize: '11px' }}>
+                    Instant QR ticket generated upon confirmation
+                  </small>
+                </div>
+
+                <div className="col-12 col-md-5 text-md-end">
+                  <span className="text-white-50 small text-uppercase fw-semibold d-block" style={{ letterSpacing: '1px', fontSize: '11px' }}>
+                    Total Payable Amount
+                  </span>
+                  <div className="d-flex align-items-center justify-content-md-end gap-1 my-1">
+                    <span className="fs-3 fw-bold text-warning">₹</span>
+                    <span className="display-6 fw-extrabold text-white" style={{ letterSpacing: '-1px', fontWeight: '800' }}>
+                      {formData.total_amt}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* 💳 PAYMENT METHOD SWITCHER */}
+            <div className="d-flex align-items-center gap-2 mb-3 pt-2 pb-2 border-bottom">
+              <div className="d-flex align-items-center justify-content-center rounded-circle"
+                   style={{ width: '36px', height: '36px', background: 'rgba(147, 51, 234, 0.12)', color: '#9333ea', fontSize: '1.1rem' }}>
+                💳
+              </div>
+              <div>
+                <h5 className="mb-0 fw-bold text-dark" style={{ fontSize: '1.1rem' }}>Payment Mode</h5>
+                <small className="text-muted">Select collection channel</small>
+              </div>
+            </div>
+
+            <div className="row g-3 mb-4">
+              {/* Cash Selector Card */}
+              <div className="col-md-6">
+                <div 
+                  onClick={() => setFormData(prev => ({ ...prev, payment: '0' }))}
+                  className={`p-3 rounded-4 cursor-pointer d-flex align-items-center justify-content-between transition-all ${formData.payment === '0' ? 'bg-primary-subtle border-primary' : 'bg-light border-transparent'}`}
+                  style={{
+                    border: formData.payment === '0' ? '2px solid #0284c7' : '1px solid #e2e8f0',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease'
+                  }}>
+                  <div className="d-flex align-items-center gap-3">
+                    <div className="fs-2">💵</div>
+                    <div>
+                      <div className="fw-bold text-dark">Cash Payment</div>
+                      <small className="text-muted">Instant pass generation</small>
+                    </div>
+                  </div>
+                  <input
+                    type="radio"
+                    className="form-check-input"
+                    checked={formData.payment === '0'}
+                    onChange={() => setFormData(prev => ({ ...prev, payment: '0' }))}
+                  />
+                </div>
+              </div>
+
+              {/* Online Selector Card */}
+              <div className="col-md-6">
+                <div 
+                  onClick={() => setFormData(prev => ({ ...prev, payment: '1' }))}
+                  className={`p-3 rounded-4 cursor-pointer d-flex align-items-center justify-content-between transition-all ${formData.payment === '1' ? 'bg-primary-subtle border-primary' : 'bg-light border-transparent'}`}
+                  style={{
+                    border: formData.payment === '1' ? '2px solid #0284c7' : '1px solid #e2e8f0',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease'
+                  }}>
+                  <div className="d-flex align-items-center gap-3">
+                    <div className="fs-2">⚡</div>
+                    <div>
+                      <div className="fw-bold text-dark">Online Gateway</div>
+                      <small className="text-muted">Razorpay / UPI / QR</small>
+                    </div>
+                  </div>
+                  <input
+                    type="radio"
+                    className="form-check-input"
+                    checked={formData.payment === '1'}
+                    onChange={() => setFormData(prev => ({ ...prev, payment: '1' }))}
+                  />
+                </div>
+              </div>
+
+              {/* Optional Txn ID Input */}
+              <div className="col-12">
+                <label className="form-label text-secondary small fw-semibold mb-1">
+                  Transaction / Memo ID <span className="text-muted fw-normal">(Optional)</span>
+                </label>
+                <input
+                  className="form-control form-control-lg"
+                  style={{ borderRadius: '10px', fontSize: '0.95rem' }}
+                  placeholder="e.g. UPI Ref Number or Cash Counter Slip No."
                   name="txn_id"
                   value={formData.txn_id}
-                  onChange={handleChange} />
+                  onChange={handleChange}
+                />
               </div>
             </div>
 
+            {/* 🚀 SUBMIT CTA BUTTON */}
             <button
-              className="btn btn-lg w-100 mt-3 text-white"
+              type="submit"
+              className="btn btn-lg w-100 text-white fw-bold py-3 rounded-4 shadow-lg position-relative overflow-hidden"
               style={{
-                background: "linear-gradient(45deg,#4facfe,#00f2fe)",
-                border: "none"
+                background: "linear-gradient(135deg, #0284c7 0%, #00f2fe 100%)",
+                border: "none",
+                fontSize: "1.15rem",
+                letterSpacing: "0.2px",
+                boxShadow: "0 15px 30px -5px rgba(2, 132, 199, 0.4)",
+                transition: "all 0.3s ease"
               }}
               disabled={loading}
             >
-              {loading ? "Processing..." : "Create Entry"}
+              {loading ? (
+                <span className="d-flex align-items-center justify-content-center gap-2">
+                  <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true" />
+                  Generating Entry Pass...
+                </span>
+              ) : (
+                <span className="d-flex align-items-center justify-content-center gap-2">
+                  <span>Confirm & Print Entry Pass</span>
+                  <span className="badge bg-white text-dark rounded-pill px-3 py-1 fw-extrabold ms-2" style={{ fontSize: '13px' }}>
+                    ₹ {formData.total_amt}
+                  </span>
+                </span>
+              )}
             </button>
 
           </form>
